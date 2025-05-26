@@ -249,7 +249,7 @@ add_to_scene(
 
 
 root = tk.Tk()
-root.title("TkEnginer")
+root.title("TkEnginer old demo")
 canvas = tk.Canvas(root, width=WIDTH, height=HEIGHT, bg="black")
 canvas.pack()
 
