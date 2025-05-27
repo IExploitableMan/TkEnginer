@@ -25,26 +25,20 @@ class Engine:
         self.window.title(title)
         self.width = width
         self.height = height
-        self.window.geometry(f"{width}x{height}")  # TODO: resize
-
-        self.window.bind("")
+        self.window.geometry(f"{width}x{height}")
         self.frame_time = 1000 / fps
+        self.fov = fov
+        self.near = near
+        self.far = far
+        self.update_projection_matrix()
 
         self.canvas = tk.Canvas(
             self.window,
-            width=width,
-            height=height,
-            bg=clear_color
+            bg=clear_color,
+            highlightthickness=0,
         )
-        self.canvas.pack()
+        self.canvas.pack(fill=tk.BOTH, expand=True)
 
-        focal = 1 / np.tan(np.radians(fov) / 2)
-        self.projection_matrix = np.zeros((4, 4), dtype=np.float32)
-        self.projection_matrix[0, 0] = focal / (width / height)
-        self.projection_matrix[1, 1] = focal
-        self.projection_matrix[2, 2] = (far + near) / (near - far)
-        self.projection_matrix[2, 3] = (2 * far * near) / (near - far)
-        self.projection_matrix[3, 2] = -1
         self.yaw, self.pitch = np.pi, 0.0  # TODO: better camera
         self.position = np.array([0, 0, 0], dtype=np.float32)
 
@@ -93,11 +87,24 @@ class Engine:
     def mouse_moved(self, event: tk.Event) -> None:
         self.mouse = [event.x, event.y]
 
+    def window_resized(self, event: tk.Event) -> None:
+        self.width, self.height = event.width, event.height
+        self.update_projection_matrix()
+
+    def update_projection_matrix(self) -> None:
+        focal = 1 / np.tan(np.radians(self.fov) / 2)
+        self.projection_matrix = np.zeros((4, 4), dtype=np.float32)
+        self.projection_matrix[0, 0] = focal / (self.width / self.height)
+        self.projection_matrix[1, 1] = focal
+        self.projection_matrix[2, 2] = (self.far + self.near) / (self.near - self.far)
+        self.projection_matrix[2, 3] = (2 * self.far * self.near) / (self.near - self.far)
+        self.projection_matrix[3, 2] = -1
+
     def update(self) -> None:
         t = time.time()
         self.on_update()
 
-        self.canvas.delete("all")
+        self.canvas.delete(tk.ALL)
 
         front = np.array([
             np.cos(self.pitch) * np.sin(self.yaw),
