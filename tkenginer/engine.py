@@ -1,5 +1,6 @@
 import tkinter as tk
 import abc
+import time
 import numpy as np
 
 from .scene import Scene
@@ -27,7 +28,7 @@ class Engine:
         self.window.geometry(f"{width}x{height}")  # TODO: resize
 
         self.window.bind("")
-        self.frame_time = int(1000 / fps)
+        self.frame_time = 1000 / fps
 
         self.canvas = tk.Canvas(
             self.window,
@@ -67,7 +68,7 @@ class Engine:
 
     def is_key_pressed(self, key: str) -> bool:
         return key in self.pressed_keys
-    
+
     def get_mouse_position(self) -> list[int]:
         return self.mouse if self.mouse is not None else [0, 0]
 
@@ -93,6 +94,7 @@ class Engine:
         self.mouse = [event.x, event.y]
 
     def update(self) -> None:
+        t = time.time()
         self.on_update()
 
         self.canvas.delete("all")
@@ -149,4 +151,5 @@ class Engine:
                 # TODO: "fragment" shader
                 self.canvas.create_polygon(points, outline="white", fill="")
 
-        self.window.after(self.frame_time, self.update)
+        self.window.after(
+            max(0, int(self.frame_time - 1000 * (time.time() - t))), self.update)
