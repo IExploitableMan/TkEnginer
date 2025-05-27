@@ -152,4 +152,4 @@ class Engine:
                 self.canvas.create_polygon(points, outline="white", fill="")
 
         self.window.after(
-            max(0, int(self.frame_time - 1000 * (time.time() - t))), self.update)
+            max(1, int(self.frame_time - 1000 * (time.time() - t))), self.update)

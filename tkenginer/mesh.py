@@ -1,5 +1,5 @@
 import numpy as np
-
+import io
 
 class Mesh:
     def __init__(self, vertices: list[list[float]], indices: list[list[int]]) -> None:
@@ -162,4 +162,20 @@ class CylinderMesh(Mesh):
 
         super().__init__(vertices, indices)
 
-# TODO: OBJ loader
+class OBJLoader(Mesh):
+    def __init__(self, file: io.TextIOWrapper) -> None:
+        vertices = []
+        indices = []
+
+        with file:  
+            for line in file:
+                parts = line.strip().split()
+                if not parts:
+                    continue
+                if parts[0] == 'v':
+                    vertices.append([float(coord) for coord in parts[1:4]])
+                elif parts[0] == 'f':
+                    buffer = [int(part.split('/')[0]) - 1 for part in parts[1:]]
+                    indices.append(buffer)
+
+        super().__init__(vertices=vertices, indices=indices)
