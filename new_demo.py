@@ -79,13 +79,21 @@ demo.scene = tke.Scene([
             scale=[1.0, 0.8, 1.5]
         )
     ),
-    # tke.GameObject(
-    #     mesh=tke.OBJLoader(open("barrel.obj", "r")),
-    #     transform=tke.Transform(
-    #         position=[-1.0, 0.0, 3.0],
-    #         rotation=[np.pi/4, np.pi/2, np.pi/3],
-    #         scale=[0.1, 0.1, 0.1]
-    #     )
-    # )
+    tke.GameObject(
+        mesh=tke.PlaneMesh(),
+        transform=tke.Transform(
+            position=[0.0, -2.0, -3.0],
+            rotation=[0.0, 0.0, 0.0],
+            scale=[3.0, 3.0, 3.0]
+        )
+    ),
+    tke.GameObject(
+        mesh=tke.OBJLoader(open("ak74.obj", "r")),
+        transform=tke.Transform(
+            position=[-1.0, 0.0, 3.0],
+            rotation=[np.pi/4, np.pi/2, np.pi/3],
+            scale=[0.1, 0.1, 0.1]
+        )
+    )
 ])
 demo.run()

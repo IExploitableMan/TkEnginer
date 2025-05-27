@@ -1,6 +1,7 @@
 import numpy as np
 import io
 
+
 class Mesh:
     def __init__(self, vertices: list[list[float]], indices: list[list[int]]) -> None:
         self.vertices = np.array(vertices, dtype=np.float32)
@@ -137,7 +138,8 @@ class CylinderMesh(Mesh):
             top_vertices.append([x, 0.5, z])
             bottom_vertices.append([x, -0.5, z])
 
-        vertices = [top_center] + top_vertices + [bottom_center] + bottom_vertices
+        vertices = [top_center] + top_vertices + \
+            [bottom_center] + bottom_vertices
 
         indices = []
         for i in range(segments):
@@ -148,7 +150,8 @@ class CylinderMesh(Mesh):
         bottom_vertex_start = bottom_center_idx + 1
         for i in range(segments):
             next_i = (i + 1) % segments
-            indices.append([bottom_center_idx, bottom_vertex_start + next_i, bottom_vertex_start + i])
+            indices.append(
+                [bottom_center_idx, bottom_vertex_start + next_i, bottom_vertex_start + i])
 
         for i in range(segments):
             next_i = (i + 1) % segments
@@ -162,12 +165,28 @@ class CylinderMesh(Mesh):
 
         super().__init__(vertices, indices)
 
+
+class PlaneMesh(Mesh):
+    def __init__(self) -> None:
+        vertices = [
+            [-0.5, 0.0, -0.5],
+            [0.5, 0.0, -0.5],
+            [0.5, 0.0, 0.5],
+            [-0.5, 0.0, 0.5],
+        ]
+        indices = [
+            [0, 1, 2],
+            [0, 2, 3],
+        ]
+        super().__init__(vertices=vertices, indices=indices)
+
+
 class OBJLoader(Mesh):
     def __init__(self, file: io.TextIOWrapper) -> None:
         vertices = []
         indices = []
 
-        with file:  
+        with file:
             for line in file:
                 parts = line.strip().split()
                 if not parts:
@@ -175,7 +194,8 @@ class OBJLoader(Mesh):
                 if parts[0] == 'v':
                     vertices.append([float(coord) for coord in parts[1:4]])
                 elif parts[0] == 'f':
-                    buffer = [int(part.split('/')[0]) - 1 for part in parts[1:]]
+                    buffer = [int(part.split('/')[0]) -
+                              1 for part in parts[1:]]
                     indices.append(buffer)
 
         super().__init__(vertices=vertices, indices=indices)

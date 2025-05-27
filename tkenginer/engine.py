@@ -96,8 +96,10 @@ class Engine:
         self.projection_matrix = np.zeros((4, 4), dtype=np.float32)
         self.projection_matrix[0, 0] = focal / (self.width / self.height)
         self.projection_matrix[1, 1] = focal
-        self.projection_matrix[2, 2] = (self.far + self.near) / (self.near - self.far)
-        self.projection_matrix[2, 3] = (2 * self.far * self.near) / (self.near - self.far)
+        self.projection_matrix[2, 2] = (
+            self.far + self.near) / (self.near - self.far)
+        self.projection_matrix[2, 3] = (
+            2 * self.far * self.near) / (self.near - self.far)
         self.projection_matrix[3, 2] = -1
 
     def update(self) -> None:
