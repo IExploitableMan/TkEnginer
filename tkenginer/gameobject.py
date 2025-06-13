@@ -1,5 +1,5 @@
-from .transform import Transform
-from .mesh import Mesh
+from .transform import *
+from .mesh import *
 
 
 class GameObject:  # TODO: children/nodes, not gameobjs etc.

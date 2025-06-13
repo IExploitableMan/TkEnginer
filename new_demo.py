@@ -10,14 +10,7 @@ class Demo(tke.Engine):
         self.last_mouse = None
 
     def on_update(self):
-        front = np.array([
-            np.cos(self.pitch) * np.sin(self.yaw),
-            np.sin(self.pitch),
-            np.cos(self.pitch) * np.cos(self.yaw)
-        ], dtype=np.float32)
-        front /= np.linalg.norm(front)
-        right = np.cross([0, 1, 0], front)
-        right /= np.linalg.norm(right)
+        front, right, _ = tke.math.get_camera_vectors(self.yaw, self.pitch)
 
         mouse = self.get_mouse_position()
         if self.is_key_pressed('mouse_1'):
