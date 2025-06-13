@@ -1,10 +1,9 @@
 import tkinter as tk
-import abc
-import time
 import numpy as np
+import time
+import abc
 
 from .scene import Scene
-from .transform import Transform
 
 
 class Engine:
@@ -159,6 +158,5 @@ class Engine:
                 ]
                 # TODO: "fragment" shader
                 self.canvas.create_polygon(points, outline="white", fill="")
-
         self.window.after(
             max(1, int(self.frame_time - 1000 * (time.time() - t))), self.update)

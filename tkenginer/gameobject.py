@@ -2,7 +2,7 @@ from .transform import Transform
 from .mesh import Mesh
 
 
-class GameObject:  # TODO: children
+class GameObject:  # TODO: children/nodes, not gameobjs etc.
     def __init__(self, mesh: Mesh, transform=None) -> None:
         if transform is None:
             self.transform = Transform()

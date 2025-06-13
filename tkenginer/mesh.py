@@ -72,7 +72,7 @@ class PyramidWithSquareBaseMesh(Mesh):
 
 
 class SphereMesh(Mesh):
-    def __init__(self, segments: int):
+    def __init__(self, segments: int) -> None:
         vertices = []
         indices = []
 
@@ -98,7 +98,7 @@ class SphereMesh(Mesh):
 
 
 class ConeMesh(Mesh):
-    def __init__(self, segments):
+    def __init__(self, segments) -> None:
         top_vertex = [0.0, 0.5, 0.0]
         base_vertices = []
 
@@ -125,7 +125,7 @@ class ConeMesh(Mesh):
 
 
 class CylinderMesh(Mesh):
-    def __init__(self, segments):
+    def __init__(self, segments) -> None:
         top_center = [0.0, 0.5, 0.0]
         bottom_center = [0.0, -0.5, 0.0]
         top_vertices = []
