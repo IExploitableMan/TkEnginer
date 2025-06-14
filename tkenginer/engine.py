@@ -14,7 +14,7 @@ class Engine(abc.ABC):
         width: int = 1600,
         height: int = 900,
         fps: int = 60,
-        gradient_steps: int = 7,
+        subdivision_steps: int = 3,
         fov: float = 90,
         near: float = 0.01,
         far: float = 100,
@@ -28,7 +28,7 @@ class Engine(abc.ABC):
         self.height = height
         self.window.geometry(f"{width}x{height}")
         self.frame_time = 1000 / fps
-        self.gradient_steps = gradient_steps
+        self.subdivision_steps = subdivision_steps
         self.fov = fov
         self.near = near
         self.far = far
@@ -45,7 +45,7 @@ class Engine(abc.ABC):
             self.window, bg=clear_color, highlightthickness=0)
         self.canvas.pack(fill=tk.BOTH, expand=True)
 
-        self.yaw = np.pi #TODO: better camera
+        self.yaw = np.pi
         self.pitch = .0
         self.position = np.array([0, 0, 0], dtype=np.float32)
 
@@ -93,9 +93,14 @@ class Engine(abc.ABC):
     def window_resized(self, event: tk.Event) -> None:
         self.width, self.height = event.width, event.height
         self.projection_matrix = math.get_projection_matrix(
-            self.fov, self.width, self.height, self.near, self.far)
+            self.fov,
+            self.width, 
+            self.height, 
+            self.near, 
+            self.far
+        )
 
-    def update(self) -> None:
+    def update(self) -> None: # TODO: face culling, depth test, shaders, color blending
         t = time.time()
         self.on_update()
 
@@ -109,7 +114,10 @@ class Engine(abc.ABC):
 
             vertices_clip = math.transform_vertices(vertices, mvp_matrix)
             screen_coords, w_coords = math.clip_to_screen(
-                vertices_clip, self.width, self.height)
+                vertices_clip,
+                self.width,
+                self.height
+            )
 
             for triangle in indices:
                 w0, w1, w2 = w_coords[triangle[0], 0], w_coords[triangle[1], 0], w_coords[triangle[2], 0]
@@ -117,9 +125,16 @@ class Engine(abc.ABC):
                     continue
 
                 p0, p1, p2 = screen_coords[triangle[0]], screen_coords[triangle[1]], screen_coords[triangle[2]]
-                points = [p0[0], p0[1], p1[0], p1[1], p2[0], p2[1]]
-                self.canvas.create_polygon(points, outline="white", fill="")
-
+                math.draw_subdivided_triangle(
+                    p0,
+                    p1,
+                    p2,
+                    (255, 0, 0),
+                    (0, 255, 0),
+                    (0, 0, 255),
+                    self.subdivision_steps,
+                    self.canvas
+                )
         self.window.after(
             max(1, int(self.frame_time - 1000 * (time.time() - t))),
             self.update

@@ -33,7 +33,7 @@ class Demo(tke.Engine):
 demo = Demo()
 demo.scene = tke.Scene([
     tke.GameObject(
-        mesh=tke.SphereMesh(16),
+        mesh=tke.SphereMesh(8),
         transform=tke.Transform(
             position=[2.0, -3.0, -3.0],
             rotation=[np.pi/4, np.pi/2, np.pi/3],
@@ -65,7 +65,7 @@ demo.scene = tke.Scene([
         )
     ),
     tke.GameObject(
-        mesh=tke.ConeMesh(30),
+        mesh=tke.ConeMesh(15),
         transform=tke.Transform(
             position=[1.0, 5.0, -3.0],
             rotation=[np.pi/2, np.pi/4, np.pi/6],
