@@ -100,11 +100,12 @@ class Engine(abc.ABC):
             self.far
         )
 
-    def update(self) -> None: # TODO: depth test, shaders, color blending
+    def update(self) -> None: # TODO: shaders, color blending, lighting
         t = time.time()
-        self.on_update()
 
         self.canvas.delete(tk.ALL)
+
+        triangles = []
 
         view_matrix = math.get_view_matrix(self.position, self.yaw, self.pitch)
 
@@ -128,26 +129,41 @@ class Engine(abc.ABC):
 
                 edge1 = p1 - p0
                 edge2 = p2 - p0
-                if edge1[0] * edge2[1] - edge1[1] * edge2[0] >= 0:
+                if float(edge1[0]) * float(edge2[1]) - float(edge1[1]) * float(edge2[0]) >= 0:
                     continue
                 
-                if self.subdivision_steps > 0:
-                    math.draw_subdivided_triangle(
-                        p0,
-                        p1,
-                        p2,
-                        (255, 0, 0),
-                        (0, 255, 0),
-                        (0, 0, 255),
-                        self.subdivision_steps,
-                        self.canvas
-                    )
-                else:
-                    self.canvas.create_polygon(
-                        [p0[0], p0[1], p1[0], p1[1], p2[0], p2[1]],
-                        outline="white",
-                        fill=""
-                    )
+                z0 = vertices_clip[triangle[0], 2]
+                z1 = vertices_clip[triangle[1], 2]
+                z2 = vertices_clip[triangle[2], 2]
+                triangles.append((
+                    (z0 + z1 + z2) / 3,
+                    p0,
+                    p1,
+                    p2
+                ))
+
+        triangles.sort(key=lambda item: item[0], reverse=True)
+        for _, p0, p1, p2 in triangles:
+            if self.subdivision_steps > 0:
+                math.draw_subdivided_triangle(
+                    p0,
+                    p1,
+                    p2,
+                    (255, 0, 0),
+                    (0, 255, 0),
+                    (0, 0, 255),
+                    self.subdivision_steps,
+                    self.canvas
+                )
+            else:
+                self.canvas.create_polygon(
+                    [p0[0], p0[1], p1[0], p1[1], p2[0], p2[1]],
+                    outline="white",
+                    fill=""
+                )
+
+        self.on_update()
+
         self.window.after(
             max(1, int(self.frame_time - 1000 * (time.time() - t))),
             self.update
