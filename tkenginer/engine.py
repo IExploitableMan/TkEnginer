@@ -100,7 +100,7 @@ class Engine(abc.ABC):
             self.far
         )
 
-    def update(self) -> None: # TODO: face culling, depth test, shaders, color blending
+    def update(self) -> None: # TODO: depth test, shaders, color blending
         t = time.time()
         self.on_update()
 
@@ -125,16 +125,29 @@ class Engine(abc.ABC):
                     continue
 
                 p0, p1, p2 = screen_coords[triangle[0]], screen_coords[triangle[1]], screen_coords[triangle[2]]
-                math.draw_subdivided_triangle(
-                    p0,
-                    p1,
-                    p2,
-                    (255, 0, 0),
-                    (0, 255, 0),
-                    (0, 0, 255),
-                    self.subdivision_steps,
-                    self.canvas
-                )
+
+                edge1 = p1 - p0
+                edge2 = p2 - p0
+                if edge1[0] * edge2[1] - edge1[1] * edge2[0] >= 0:
+                    continue
+                
+                if self.subdivision_steps > 0:
+                    math.draw_subdivided_triangle(
+                        p0,
+                        p1,
+                        p2,
+                        (255, 0, 0),
+                        (0, 255, 0),
+                        (0, 0, 255),
+                        self.subdivision_steps,
+                        self.canvas
+                    )
+                else:
+                    self.canvas.create_polygon(
+                        [p0[0], p0[1], p1[0], p1[1], p2[0], p2[1]],
+                        outline="white",
+                        fill=""
+                    )
         self.window.after(
             max(1, int(self.frame_time - 1000 * (time.time() - t))),
             self.update

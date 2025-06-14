@@ -4,7 +4,7 @@ import numpy as np
 
 class Demo(tke.Engine):
     def __init__(self) -> None:
-        super().__init__("TkEnginer new demo")
+        super().__init__("TkEnginer new demo", subdivision_steps=0)
         self.speed = 0.05
         self.sensetivity = 0.01
         self.last_mouse = None
