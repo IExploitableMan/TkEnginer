@@ -3,16 +3,25 @@ import io
 
 
 class Mesh:
-    def __init__(self, vertices: list[list[float]], indices: list[list[int]]) -> None:
+    def __init__(
+            self,
+            vertices: list[list[float]],
+            indices: list[list[int]],
+            colors: list[list[int]] = None
+        ) -> None:
         self.vertices = np.array(vertices, dtype=np.float32)
         self.indices = np.array(indices, dtype=np.uint32)
+        if colors is not None:
+            self.colors = np.array(colors, dtype=np.uint8)
+        else:
+            self.colors = np.full((len(vertices), 3), 255, dtype=np.uint8)
 
-    def get_data(self) -> tuple[np.ndarray, np.ndarray]:
-        return self.vertices, self.indices
+    def get_data(self) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+        return self.vertices, self.indices, self.colors
 
 
 class CubeMesh(Mesh):
-    def __init__(self) -> None:
+    def __init__(self, colors: list[list[int]] = None) -> None:
         vertices = [
             [-0.5, -0.5, -0.5],
             [0.5, -0.5, -0.5],
@@ -31,11 +40,11 @@ class CubeMesh(Mesh):
             [3, 2, 6], [3, 6, 7],
             [4, 5, 1], [4, 1, 0],
         ]
-        super().__init__(vertices=vertices, indices=indices)
+        super().__init__(vertices, indices, colors)
 
 
 class PyramidMesh(Mesh):
-    def __init__(self) -> None:
+    def __init__(self, colors: list[list[int]] = None) -> None:
         vertices = [
             [-0.5, -0.5, -0.5],
             [0.5, -0.5, -0.5],
@@ -48,11 +57,11 @@ class PyramidMesh(Mesh):
             [1, 2, 3],
             [2, 0, 3],
         ]
-        super().__init__(vertices=vertices, indices=indices)
+        super().__init__(vertices, indices, colors)
 
 
 class PyramidWithSquareBaseMesh(Mesh):
-    def __init__(self) -> None:
+    def __init__(self, colors: list[list[int]] = None) -> None:
         vertices = [
             [-0.5, -0.5, -0.5],
             [0.5, -0.5, -0.5],
@@ -68,11 +77,11 @@ class PyramidWithSquareBaseMesh(Mesh):
             [2, 3, 4],
             [3, 0, 4],
         ]
-        super().__init__(vertices=vertices, indices=indices)
+        super().__init__(vertices, indices, colors)
 
 
 class SphereMesh(Mesh):
-    def __init__(self, segments: int) -> None:
+    def __init__(self, segments: int, colors: list[list[int]] = None) -> None:
         vertices = []
         indices = []
 
@@ -94,11 +103,11 @@ class SphereMesh(Mesh):
                     [x, y, x + 1],
                     [y, y + 1, x + 1]
                 ])
-        super().__init__(vertices, indices)
+        super().__init__(vertices, indices, colors)
 
 
 class ConeMesh(Mesh):
-    def __init__(self, segments) -> None:
+    def __init__(self, segments: int, colors: list[list[int]] = None) -> None:
         top_vertex = [0.0, 0.5, 0.0]
         base_vertices = []
 
@@ -121,11 +130,11 @@ class ConeMesh(Mesh):
             next_i = (i + 1) % segments
             indices.append([base_center_idx, next_i + 1, i + 1])
 
-        super().__init__(vertices, indices)
+        super().__init__(vertices, indices, colors)
 
 
 class CylinderMesh(Mesh):
-    def __init__(self, segments) -> None:
+    def __init__(self, segments: int, colors: list[list[int]] = None) -> None:
         top_center = [0.0, 0.5, 0.0]
         bottom_center = [0.0, -0.5, 0.0]
         top_vertices = []
@@ -163,11 +172,11 @@ class CylinderMesh(Mesh):
             indices.append([top_idx, bottom_idx, next_top_idx])
             indices.append([next_top_idx, bottom_idx, next_bottom_idx])
 
-        super().__init__(vertices, indices)
+        super().__init__(vertices, indices, colors)
 
 
 class PlaneMesh(Mesh):
-    def __init__(self) -> None:
+    def __init__(self, colors: list[list[int]] = None) -> None:
         vertices = [
             [-0.5, 0.0, -0.5],
             [0.5, 0.0, -0.5],
@@ -178,15 +187,15 @@ class PlaneMesh(Mesh):
             [0, 1, 2],
             [0, 2, 3],
         ]
-        super().__init__(vertices=vertices, indices=indices)
+        super().__init__(vertices, indices, colors)
 
 
 class OBJLoader(Mesh):
-    def __init__(self, file: io.TextIOWrapper) -> None:
+    def __init__(self, file: io.TextIOWrapper, colors: list[list[int]] = None) -> None:
         vertices = []
         indices = []
 
-        with file:
+        with file: # TODO: implement MTL parser
             for line in file:
                 parts = line.strip().split()
                 if not parts:
@@ -194,8 +203,11 @@ class OBJLoader(Mesh):
                 if parts[0] == 'v':
                     vertices.append([float(coord) for coord in parts[1:4]])
                 elif parts[0] == 'f':
-                    buffer = [int(part.split('/')[0]) -
-                              1 for part in parts[1:]]
-                    indices.append(buffer)
+                    buffer = [int(part.split('/')[0]) - 1 for part in parts[1:]]
+                    if len(buffer) == 3:
+                        indices.append(buffer)
+                    elif len(buffer) > 3:
+                        for i in range(1, len(buffer) - 1):
+                            indices.append([buffer[0], buffer[i], buffer[i + 1]])
 
-        super().__init__(vertices=vertices, indices=indices)
+        super().__init__(vertices, indices, colors)

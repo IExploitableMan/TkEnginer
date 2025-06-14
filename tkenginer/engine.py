@@ -110,7 +110,7 @@ class Engine(abc.ABC):
         view_matrix = math.get_view_matrix(self.position, self.yaw, self.pitch)
 
         for gameobject in self.scene.gameobjects:
-            vertices, indices = gameobject.mesh.get_data()
+            vertices, indices, colors = gameobject.mesh.get_data()
             mvp_matrix = self.projection_matrix @ view_matrix @ gameobject.transform.get_matrix()
 
             vertices_clip = math.transform_vertices(vertices, mvp_matrix)
@@ -126,6 +126,7 @@ class Engine(abc.ABC):
                     continue
 
                 p0, p1, p2 = screen_coords[triangle[0]], screen_coords[triangle[1]], screen_coords[triangle[2]]
+                c0, c1, c2 = colors[triangle[0]], colors[triangle[1]], colors[triangle[2]]
 
                 edge1 = p1 - p0
                 edge2 = p2 - p0
@@ -139,19 +140,22 @@ class Engine(abc.ABC):
                     (z0 + z1 + z2) / 3,
                     p0,
                     p1,
-                    p2
+                    p2,
+                    c0,
+                    c1,
+                    c2,
                 ))
 
         triangles.sort(key=lambda item: item[0], reverse=True)
-        for _, p0, p1, p2 in triangles:
+        for _, p0, p1, p2, c0, c1, c2 in triangles:
             if self.subdivision_steps > 0:
                 math.draw_subdivided_triangle(
                     p0,
                     p1,
                     p2,
-                    (255, 0, 0),
-                    (0, 255, 0),
-                    (0, 0, 255),
+                    c0,
+                    c1,
+                    c2,
                     self.subdivision_steps,
                     self.canvas
                 )

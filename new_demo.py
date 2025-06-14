@@ -45,7 +45,18 @@ demo.scene = tke.Scene([
         )
     ),
     tke.GameObject(
-        mesh=tke.CubeMesh(),
+        mesh=tke.CubeMesh(
+            colors=[
+                [255, 0, 0],
+                [0, 255, 0],
+                [0, 0, 255],
+                [255, 255, 0],
+                [255, 0, 255],
+                [0, 255, 255],
+                [255, 165, 0],
+                [128, 0, 128],
+            ]
+        ),
         transform=tke.Transform(
             position=[-5.0, 2.0, -3.0],
             rotation=[np.pi/6, np.pi/3, np.pi/4],
