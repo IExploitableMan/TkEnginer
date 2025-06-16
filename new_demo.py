@@ -1,3 +1,4 @@
+from PIL import ImageDraw
 import tkenginer as tke
 import numpy as np
 import time
@@ -11,7 +12,8 @@ class Demo(tke.Engine):
         self.last_mouse = None
         self.last_t = time.time()
 
-    def on_update(self, draw):
+    def on_update(self) -> None:
+        draw = ImageDraw.Draw(self.image)
         draw.text((10, 10), f"FPS: {int(1 / (time.time() - self.last_t))}", "white")
         self.last_t = time.time()
         front, right, _ = tke.math.get_camera_vectors(self.yaw, self.pitch)
@@ -47,14 +49,14 @@ demo.scene = tke.Scene([
     tke.GameObject(
         mesh=tke.CubeMesh(
             colors=[
-                [255, 0, 0],
-                [0, 255, 0],
-                [0, 0, 255],
-                [255, 255, 0],
-                [255, 0, 255],
-                [0, 255, 255],
-                [255, 165, 0],
-                [128, 0, 128],
+                [255, 0, 0, 255],
+                [0, 255, 0, 255],
+                [0, 0, 255, 255],
+                [255, 255, 0, 255],
+                [255, 0, 255, 255],
+                [0, 255, 255, 255],
+                [255, 165, 0, 255],
+                [128, 0, 128, 255],
             ]
         ),
         transform=tke.Transform(

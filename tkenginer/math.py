@@ -1,14 +1,14 @@
 import numpy as np
-import tkinter as tk
+import numba as nb
 
-
+@nb.njit
 def get_projection_matrix(
-        fov: float,
-        width: int,
-        height: int,
-        near: float,
-        far: float
-    ) -> np.ndarray:
+    fov: float,
+    width: int,
+    height: int,
+    near: float,
+    far: float
+) -> np.ndarray:
     focal = 1 / np.tan(np.radians(fov) / 2)
     proj = np.zeros((4, 4), dtype=np.float32)
     proj[0, 0] = focal / (width / height)
@@ -18,7 +18,7 @@ def get_projection_matrix(
     proj[3, 2] = -1
     return proj
 
-
+@nb.njit
 def get_camera_vectors(yaw: float, pitch: float) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     front = np.array([
         np.cos(pitch) * np.sin(yaw),
@@ -34,7 +34,7 @@ def get_camera_vectors(yaw: float, pitch: float) -> tuple[np.ndarray, np.ndarray
 
     return front, right, up
 
-
+@nb.njit
 def get_view_matrix(position: np.ndarray, yaw: float, pitch: float) -> np.ndarray:
     front, right, up = get_camera_vectors(yaw, pitch)
 
@@ -45,14 +45,16 @@ def get_view_matrix(position: np.ndarray, yaw: float, pitch: float) -> np.ndarra
     view[:3, 3] = -view[:3, :3] @ position
     return view
 
-
+@nb.njit
 def transform_vertices(vertices: np.ndarray, mvp_matrix: np.ndarray) -> np.ndarray:
-    vertices_hom = np.hstack(
-        [vertices, np.ones((vertices.shape[0], 1), dtype=np.float32)])
+    vertices_hom = np.concatenate(
+        (vertices, np.ones((vertices.shape[0], 1), dtype=np.float32)),
+        axis=1
+    )
     vertices_clip = vertices_hom @ mvp_matrix.T
     return vertices_clip
 
-
+@nb.njit
 def clip_to_screen(vertices_clip: np.ndarray, width: int, height: int) -> tuple[np.ndarray, np.ndarray]:
     w_coords = vertices_clip[:, 3:4]
     vertices_ndc = vertices_clip[:, :3] / w_coords
@@ -68,75 +70,54 @@ def lerp(a: float, b: float, t: float) -> float:
     return a + (b - a) * t
 
 # TODO: color class
-def lerp_color(c0, c1, t: float):
-    return tuple(int(lerp(c0[i], c1[i], t)) for i in range(3))
+@nb.njit
+def barycentric_weights(px, py, p0, p1, p2):
+    v0x = p1[0] - p0[0]
+    v0y = p1[1] - p0[1]
+    v1x = p2[0] - p0[0]
+    v1y = p2[1] - p0[1]
 
+    d00 = v0x * v0x + v0y * v0y
+    d01 = v0x * v1x + v0y * v1y
+    d11 = v1x * v1x + v1y * v1y
 
-def barycentric_interp_color(c0, c1, c2, u: float, v: float):
-    w = 1 - u - v
-    return tuple(int(c0[i]*w + c1[i]*u + c2[i]*v) for i in range(3))
+    v2x = px - p0[0]
+    v2y = py - p0[1]
 
-def rgb_to_hex(c):
-    return f'#{c[0]:02x}{c[1]:02x}{c[2]:02x}'
+    d20 = v2x * v0x + v2y * v0y
+    d21 = v2x * v1x + v2y * v1y
 
+    denom = d00 * d11 - d01 * d01
+    if denom == 0:
+        return -1.0, -1.0, -1.0
 
-def draw_subdivided_triangle(
-        p0: list[float],
-        p1: list[float],
-        p2: list[float],
-        c0,
-        c1,
-        c2,
-        steps: int,
-        canvas: tk.Canvas
-    ):
-    for i in range(steps):
-        for j in range(steps - i):
-            u0, v0 = i / steps, j / steps
-            u1, v1 = (i + 1) / steps, j / steps
-            u2, v2 = i / steps, (j + 1) / steps
+    v = (d11 * d20 - d01 * d21) / denom
+    w = (d00 * d21 - d01 * d20) / denom
+    u = 1.0 - v - w
+    return u, v, w
 
-            pA = (
-                p0[0] * (1 - u0 - v0) + p1[0] * u0 + p2[0] * v0,
-                p0[1] * (1 - u0 - v0) + p1[1] * u0 + p2[1] * v0,
-            )
-            pB = (
-                p0[0] * (1 - u1 - v1) + p1[0] * u1 + p2[0] * v1,
-                p0[1] * (1 - u1 - v1) + p1[1] * u1 + p2[1] * v1,
-            )
-            pC = (
-                p0[0] * (1 - u2 - v2) + p1[0] * u2 + p2[0] * v2,
-                p0[1] * (1 - u2 - v2) + p1[1] * u2 + p2[1] * v2,
-            )
-            cA = barycentric_interp_color(c0, c1, c2, u0, v0)
-            cB = barycentric_interp_color(c0, c1, c2, u1, v1)
-            cC = barycentric_interp_color(c0, c1, c2, u2, v2)
+@nb.njit(parallel=True)
+def draw_triangle(buffer, zbuffer, p0, p1, p2, c0, c1, c2, w0, w1, w2):
+    w0 = 1 / w0
+    w1 = 1 / w1
+    w2 = 1 / w2
+    height, width, channels = buffer.shape
+    min_x = max(int(min(p0[0], p1[0], p2[0])), 0)
+    max_x = min(int(max(p0[0], p1[0], p2[0])), width - 1)
+    min_y = max(int(min(p0[1], p1[1], p2[1])), 0)
+    max_y = min(int(max(p0[1], p1[1], p2[1])), height - 1)
 
-            canvas.create_polygon(
-                pA[0], pA[1], pB[0], pB[1], pC[0], pC[1],
-                fill=rgb_to_hex((
-                    (cA[0] + cB[0] + cC[0]) // 3,
-                    (cA[1] + cB[1] + cC[1]) // 3,
-                    (cA[2] + cB[2] + cC[2]) // 3
-                )),
-                outline=""
-            )
-
-            if i + j + 1 < steps:
-                u3, v3 = (i + 1) / steps, (j + 1) / steps
-
-                pD = (
-                    p0[0] * (1 - u3 - v3) + p1[0] * u3 + p2[0] * v3,
-                    p0[1] * (1 - u3 - v3) + p1[1] * u3 + p2[1] * v3,
-                )
-                cD = barycentric_interp_color(c0, c1, c2, u3, v3)
-
-                canvas.create_polygon(
-                    pB[0], pB[1], pD[0], pD[1], pC[0], pC[1],
-                    fill=rgb_to_hex((
-                        (cB[0] + cC[0] + cD[0]) // 3,
-                        (cB[1] + cC[1] + cD[1]) // 3,
-                        (cB[2] + cC[2] + cD[2]) // 3
-                    )),
-                    outline=""
-                )
+    for y in nb.prange(min_y, max_y + 1):
+        for x in range(min_x, max_x + 1):
+            u, v, w = barycentric_weights(x + 0.5, y + 0.5, p0, p1, p2)
+            if u >= 0 and v >= 0 and w >= 0:
+                z = u / w0 + v / w1 + w / w2
+                if z < zbuffer[y, x]:
+                    zbuffer[y, x] = z
+                    for ch in range(channels):
+                        val = u * c0[ch] + v * c1[ch] + w * c2[ch]
+                        if val < 0:
+                            val = 0
+                        elif val > 255:
+                            val = 255
+                        buffer[y, x, ch] = val

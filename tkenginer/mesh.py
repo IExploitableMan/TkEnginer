@@ -14,7 +14,7 @@ class Mesh:
         if colors is not None:
             self.colors = np.array(colors, dtype=np.uint8)
         else:
-            self.colors = np.full((len(vertices), 3), 255, dtype=np.uint8)
+            self.colors = np.full((len(vertices), 4), 255, dtype=np.uint8)
 
     def get_data(self) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
         return self.vertices, self.indices, self.colors

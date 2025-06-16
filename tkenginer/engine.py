@@ -1,8 +1,8 @@
+from PIL import Image, ImageTk, ImageDraw
 import tkinter as tk
 import numpy as np
 import time
 import abc
-from PIL import ImageTk, Image, ImageDraw
 
 from .scene import *
 from . import math
@@ -18,14 +18,12 @@ class Engine(abc.ABC):
         fov: float = 90,
         near: float = 0.01,
         far: float = 100,
-        clear_color: str = "black",
+        clear_color: tuple[int, int, int] = (0, 0, 0),
         scene: Scene = None
     ) -> None:
 
         self.window = tk.Tk()
         self.window.title(title)
-        self.width = width
-        self.height = height
         self.window.geometry(f"{width}x{height}")
         self.frame_time = 1000 / fps
         self.fov = fov
@@ -33,30 +31,12 @@ class Engine(abc.ABC):
         self.far = far
         self.clear_color = clear_color
 
-        self.projection_matrix = math.get_projection_matrix(
-            self.fov, 
-            self.width, 
-            self.height, 
-            self.near, 
-            self.far
-        )
-
         self.canvas = tk.Canvas(
             self.window,
             highlightthickness=0
         )
         self.canvas.pack(fill=tk.BOTH, expand=True)
-        self.buffer = Image.new(
-            "RGB",
-            (width, height)
-        )
-        self.buffer_wrapper = ImageTk.PhotoImage(self.buffer)
-        self.canvas.create_image(
-            0,
-            0,
-            image=self.buffer_wrapper,
-            anchor="nw"
-        )
+        self.init(width, height)
 
         self.yaw = np.pi
         self.pitch = .0
@@ -74,8 +54,24 @@ class Engine(abc.ABC):
         self.window.bind("<Motion>", self.mouse_moved)
         self.window.bind("<Configure>", self.window_resized)
 
+    def init(self, width: int, height: int) -> None:
+        self.width = width
+        self.height = height
+        self.projection_matrix = math.get_projection_matrix(
+            self.fov,
+            self.width, 
+            self.height, 
+            self.near, 
+            self.far
+        )
+        self.buffer = np.zeros((self.height, self.width, 4), dtype=np.uint8)
+        self.zbuffer = np.full((self.height, self.width), np.inf, dtype=np.float32)
+        self.image = Image.fromarray(self.buffer, "RGBA")
+        self.photo = ImageTk.PhotoImage(self.image)
+        self.canvas.create_image(0, 0, image=self.photo, anchor="nw")
+
     @abc.abstractmethod
-    def on_update(self, draw: ImageDraw.ImageDraw) -> None:
+    def on_update(self) -> None:
         pass
 
     def is_key_pressed(self, key: str) -> bool:
@@ -104,22 +100,14 @@ class Engine(abc.ABC):
         self.mouse = [event.x, event.y]
 
     def window_resized(self, event: tk.Event) -> None:
-        self.width, self.height = event.width, event.height
-        self.projection_matrix = math.get_projection_matrix(
-            self.fov,
-            self.width, 
-            self.height, 
-            self.near, 
-            self.far
-        )
+        self.init(event.width, event.height)
 
     def update(self) -> None: # TODO: shaders, color blending, lighting
         t = time.time()
 
-        draw = ImageDraw.Draw(self.buffer)
-        draw.rectangle([0, 0, self.width, self.height], self.clear_color)
-
-        triangles = []
+        self.image.paste("black", (0, 0, self.width, self.height))
+        self.buffer[:, :, :] = list(self.clear_color) + [255]
+        self.zbuffer[:, :] = np.inf
 
         view_matrix = math.get_view_matrix(self.position, self.yaw, self.pitch)
 
@@ -147,30 +135,11 @@ class Engine(abc.ABC):
                 if float(edge1[0]) * float(edge2[1]) - float(edge1[1]) * float(edge2[0]) >= 0:
                     continue
                 
-                z0 = vertices_clip[triangle[0], 2]
-                z1 = vertices_clip[triangle[1], 2]
-                z2 = vertices_clip[triangle[2], 2]
-                triangles.append((
-                    (z0 + z1 + z2) / 3,
-                    p0,
-                    p1,
-                    p2,
-                    c0,
-                    c1,
-                    c2,
-                ))
+                math.draw_triangle(self.buffer, self.zbuffer, p0, p1, p2, c0, c1, c2, w0, w1, w2)
 
-        triangles.sort(key=lambda item: item[0], reverse=True)
-        for _, p0, p1, p2, c0, c1, c2 in triangles:
-            # self.canvas.create_polygon(
-            #     [p0[0], p0[1], p1[0], p1[1], p2[0], p2[1]],
-            #     outline="white",
-            #     fill=""
-            # )
-            draw.polygon([p0[0], p0[1], p1[0], p1[1], p2[0], p2[1]], outline="white")
-
-        self.on_update(draw)
-        self.buffer_wrapper.paste(self.buffer)
+        self.image = Image.fromarray(self.buffer, 'RGBA')
+        self.on_update()
+        self.photo.paste(self.image)
 
         self.window.after(
             max(1, int(self.frame_time - 1000 * (time.time() - t))),
