@@ -1,6 +1,7 @@
 import numpy as np
 import numba as nb
 
+
 @nb.njit
 def get_projection_matrix(
     fov: float,
@@ -18,6 +19,7 @@ def get_projection_matrix(
     proj[3, 2] = -1
     return proj
 
+
 @nb.njit
 def get_camera_vectors(yaw: float, pitch: float) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     front = np.array([
@@ -34,6 +36,7 @@ def get_camera_vectors(yaw: float, pitch: float) -> tuple[np.ndarray, np.ndarray
 
     return front, right, up
 
+
 @nb.njit
 def get_view_matrix(position: np.ndarray, yaw: float, pitch: float) -> np.ndarray:
     front, right, up = get_camera_vectors(yaw, pitch)
@@ -45,6 +48,7 @@ def get_view_matrix(position: np.ndarray, yaw: float, pitch: float) -> np.ndarra
     view[:3, 3] = -view[:3, :3] @ position
     return view
 
+
 @nb.njit
 def transform_vertices(vertices: np.ndarray, mvp_matrix: np.ndarray) -> np.ndarray:
     vertices_hom = np.concatenate(
@@ -53,6 +57,7 @@ def transform_vertices(vertices: np.ndarray, mvp_matrix: np.ndarray) -> np.ndarr
     )
     vertices_clip = vertices_hom @ mvp_matrix.T
     return vertices_clip
+
 
 @nb.njit
 def clip_to_screen(vertices_clip: np.ndarray, width: int, height: int) -> tuple[np.ndarray, np.ndarray]:
@@ -70,6 +75,8 @@ def lerp(a: float, b: float, t: float) -> float:
     return a + (b - a) * t
 
 # TODO: color class
+
+
 @nb.njit
 def barycentric_weights(px, py, p0, p1, p2):
     v0x = p1[0] - p0[0]
@@ -95,6 +102,7 @@ def barycentric_weights(px, py, p0, p1, p2):
     w = (d00 * d21 - d01 * d20) / denom
     u = 1.0 - v - w
     return u, v, w
+
 
 @nb.njit(parallel=True)
 def draw_triangle(buffer, zbuffer, p0, p1, p2, c0, c1, c2, w0, w1, w2):

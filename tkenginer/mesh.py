@@ -4,11 +4,11 @@ import io
 
 class Mesh:
     def __init__(
-            self,
-            vertices: list[list[float]],
-            indices: list[list[int]],
-            colors: list[list[int]] = None
-        ) -> None:
+        self,
+        vertices: list[list[float]],
+        indices: list[list[int]],
+        colors: list[list[int]] = None
+    ) -> None:
         self.vertices = np.array(vertices, dtype=np.float32)
         self.indices = np.array(indices, dtype=np.uint32)
         if colors is not None:
@@ -195,19 +195,24 @@ class OBJLoader(Mesh):
         vertices = []
         indices = []
 
-        with file: # TODO: implement MTL parser
+        with file:  # TODO: implement MTL parser
             for line in file:
                 parts = line.strip().split()
                 if not parts:
                     continue
-                if parts[0] == 'v':
+                if parts[0] == "v":
                     vertices.append([float(coord) for coord in parts[1:4]])
-                elif parts[0] == 'f':
-                    buffer = [int(part.split('/')[0]) - 1 for part in parts[1:]]
+                elif parts[0] == "f":
+                    buffer = [
+                        int(part.split("/")[0]) 
+                        -
+                        1 for part in parts[1:]
+                    ]
                     if len(buffer) == 3:
                         indices.append(buffer)
                     elif len(buffer) > 3:
                         for i in range(1, len(buffer) - 1):
-                            indices.append([buffer[0], buffer[i], buffer[i + 1]])
+                            indices.append(
+                                [buffer[0], buffer[i], buffer[i + 1]])
 
         super().__init__(vertices, indices, colors)

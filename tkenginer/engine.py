@@ -102,7 +102,7 @@ class Engine(abc.ABC):
     def window_resized(self, event: tk.Event) -> None:
         self.init(event.width, event.height)
 
-    def update(self) -> None: # TODO: shaders, color blending, lighting
+    def update(self) -> None: # TODO: shaders, lighting
         t = time.time()
 
         self.image.paste("black", (0, 0, self.width, self.height))
@@ -137,7 +137,7 @@ class Engine(abc.ABC):
                 
                 math.draw_triangle(self.buffer, self.zbuffer, p0, p1, p2, c0, c1, c2, w0, w1, w2)
 
-        self.image = Image.fromarray(self.buffer, 'RGBA')
+        self.image = Image.fromarray(self.buffer, "RGBA")
         self.on_update()
         self.photo.paste(self.image)
 

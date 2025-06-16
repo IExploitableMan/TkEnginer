@@ -19,20 +19,20 @@ class Demo(tke.Engine):
         front, right, _ = tke.math.get_camera_vectors(self.yaw, self.pitch)
 
         mouse = self.get_mouse_position()
-        if self.is_key_pressed('mouse_1'):
+        if self.is_key_pressed("mouse_1"):
             self.yaw += (mouse[0] - self.last_mouse[0]) * self.sensetivity
             self.pitch -= (mouse[1] - self.last_mouse[1]) * self.sensetivity
             max_pitch = np.pi / 2 - 0.01
             self.pitch = max(-max_pitch, min(max_pitch, self.pitch))
         self.last_mouse = mouse
 
-        if self.is_key_pressed('w'):
+        if self.is_key_pressed("w"):
             self.position += front * self.speed
-        if self.is_key_pressed('a'):
+        if self.is_key_pressed("a"):
             self.position -= right * self.speed
-        if self.is_key_pressed('s'):
+        if self.is_key_pressed("s"):
             self.position -= front * self.speed
-        if self.is_key_pressed('d'):
+        if self.is_key_pressed("d"):
             self.position += right * self.speed
 
 
