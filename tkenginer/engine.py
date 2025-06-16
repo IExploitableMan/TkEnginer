@@ -2,6 +2,7 @@ import tkinter as tk
 import numpy as np
 import time
 import abc
+from PIL import ImageTk, Image, ImageDraw
 
 from .scene import *
 from . import math
@@ -14,7 +15,6 @@ class Engine(abc.ABC):
         width: int = 1600,
         height: int = 900,
         fps: int = 60,
-        subdivision_steps: int = 3,
         fov: float = 90,
         near: float = 0.01,
         far: float = 100,
@@ -28,10 +28,10 @@ class Engine(abc.ABC):
         self.height = height
         self.window.geometry(f"{width}x{height}")
         self.frame_time = 1000 / fps
-        self.subdivision_steps = subdivision_steps
         self.fov = fov
         self.near = near
         self.far = far
+        self.clear_color = clear_color
 
         self.projection_matrix = math.get_projection_matrix(
             self.fov, 
@@ -42,8 +42,21 @@ class Engine(abc.ABC):
         )
 
         self.canvas = tk.Canvas(
-            self.window, bg=clear_color, highlightthickness=0)
+            self.window,
+            highlightthickness=0
+        )
         self.canvas.pack(fill=tk.BOTH, expand=True)
+        self.buffer = Image.new(
+            "RGB",
+            (width, height)
+        )
+        self.buffer_wrapper = ImageTk.PhotoImage(self.buffer)
+        self.canvas.create_image(
+            0,
+            0,
+            image=self.buffer_wrapper,
+            anchor="nw"
+        )
 
         self.yaw = np.pi
         self.pitch = .0
@@ -62,7 +75,7 @@ class Engine(abc.ABC):
         self.window.bind("<Configure>", self.window_resized)
 
     @abc.abstractmethod
-    def on_update(self) -> None:
+    def on_update(self, draw: ImageDraw.ImageDraw) -> None:
         pass
 
     def is_key_pressed(self, key: str) -> bool:
@@ -103,7 +116,8 @@ class Engine(abc.ABC):
     def update(self) -> None: # TODO: shaders, color blending, lighting
         t = time.time()
 
-        self.canvas.delete(tk.ALL)
+        draw = ImageDraw.Draw(self.buffer)
+        draw.rectangle([0, 0, self.width, self.height], self.clear_color)
 
         triangles = []
 
@@ -148,25 +162,15 @@ class Engine(abc.ABC):
 
         triangles.sort(key=lambda item: item[0], reverse=True)
         for _, p0, p1, p2, c0, c1, c2 in triangles:
-            if self.subdivision_steps > 0:
-                math.draw_subdivided_triangle(
-                    p0,
-                    p1,
-                    p2,
-                    c0,
-                    c1,
-                    c2,
-                    self.subdivision_steps,
-                    self.canvas
-                )
-            else:
-                self.canvas.create_polygon(
-                    [p0[0], p0[1], p1[0], p1[1], p2[0], p2[1]],
-                    outline="white",
-                    fill=""
-                )
+            # self.canvas.create_polygon(
+            #     [p0[0], p0[1], p1[0], p1[1], p2[0], p2[1]],
+            #     outline="white",
+            #     fill=""
+            # )
+            draw.polygon([p0[0], p0[1], p1[0], p1[1], p2[0], p2[1]], outline="white")
 
-        self.on_update()
+        self.on_update(draw)
+        self.buffer_wrapper.paste(self.buffer)
 
         self.window.after(
             max(1, int(self.frame_time - 1000 * (time.time() - t))),

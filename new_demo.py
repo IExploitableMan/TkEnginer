@@ -5,14 +5,14 @@ import time
 
 class Demo(tke.Engine):
     def __init__(self) -> None:
-        super().__init__("TkEnginer new demo", subdivision_steps=2)
+        super().__init__("TkEnginer new demo")
         self.speed = 0.05
         self.sensetivity = 0.01
         self.last_mouse = None
         self.last_t = time.time()
 
-    def on_update(self):
-        self.canvas.create_text(30, 10, text=f"FPS: {int(1 / (time.time() - self.last_t))}", fill="white")
+    def on_update(self, draw):
+        draw.text((10, 10), f"FPS: {int(1 / (time.time() - self.last_t))}", "white")
         self.last_t = time.time()
         front, right, _ = tke.math.get_camera_vectors(self.yaw, self.pitch)
 
