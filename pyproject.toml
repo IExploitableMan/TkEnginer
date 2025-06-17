@@ -1,0 +1,52 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+dynamic = ["version"]
+name = "tkenginer"
+dependencies = [
+    "numpy",
+    "numba",
+    "pillow"
+]
+requires-python = ">=3.9"
+authors = [
+    {name = "IExploitableMan"}
+]
+description = "A fun experimental 3D engine built with Tkinter."
+readme = "README.md"
+license = "CC-BY-NC-ND-4.0"
+license-files = ["LICENSE"]
+keywords = ["engine", "rendering", "tkinter", "3d"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Education",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
+    "Operating System :: OS Independent",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+    "Topic :: Multimedia :: Graphics :: 3D Rendering",
+]
+
+[project.urls]
+Homepage = "https://github.com/IExploitableMan/TkEnginer"
+Repository = "https://github.com/IExploitableMan/TkEnginer.git"
+Issues = "https://github.com/IExploitableMan/TkEnginer/issues"
+
+[tool.hatch.version]
+path = "tkenginer/__init__.py"
+
+[tool.hatch.envs.test]
+dependencies = [
+    "pytest"
+]
+scripts = { test = "pytest" }

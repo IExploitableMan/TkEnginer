@@ -4,3 +4,5 @@ from .engine import *
 from .node import *
 from .mesh import *
 from . import math
+
+VERSION = "0.0.0"
