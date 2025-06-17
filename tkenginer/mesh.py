@@ -190,12 +190,12 @@ class PlaneMesh(Mesh):
         super().__init__(vertices, indices, colors)
 
 
-class OBJLoader(Mesh):
+class OBJMesh(Mesh):
     def __init__(self, file: io.TextIOWrapper, colors: list[list[int]] = None) -> None:
         vertices = []
         indices = []
 
-        with file:  # TODO: implement MTL parser
+        with file:  # TODO: implement MTL parser, textures
             for line in file:
                 parts = line.strip().split()
                 if not parts:
@@ -204,7 +204,7 @@ class OBJLoader(Mesh):
                     vertices.append([float(coord) for coord in parts[1:4]])
                 elif parts[0] == "f":
                     buffer = [
-                        int(part.split("/")[0]) 
+                        int(part.split("/")[0])
                         -
                         1 for part in parts[1:]
                     ]

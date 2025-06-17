@@ -1,6 +1,5 @@
-from .gameobject import *
+from .node import *
 from .transform import *
 from .engine import *
-from .scene import *
 from .mesh import *
 from . import math

@@ -1,10 +1,10 @@
-from PIL import Image, ImageTk, ImageDraw
 import tkinter as tk
 import numpy as np
 import time
 import abc
 
-from .scene import *
+from PIL import Image, ImageTk
+from .node import *
 from . import math
 
 
@@ -19,7 +19,7 @@ class Engine(abc.ABC):
         near: float = 0.01,
         far: float = 100,
         clear_color: tuple[int, int, int] = (0, 0, 0),
-        scene: Scene = None
+        scene: Node = None
     ) -> None:
 
         self.window = tk.Tk()
@@ -42,7 +42,7 @@ class Engine(abc.ABC):
         self.pitch = .0
         self.position = np.array([0, 0, 0], dtype=np.float32)
 
-        self.scene = scene if scene is not None else Scene()
+        self.scene = scene if scene is not None else Node()
 
         self.pressed_keys: set[str] = set()
         self.mouse: list[int] = None
@@ -111,9 +111,10 @@ class Engine(abc.ABC):
 
         view_matrix = math.get_view_matrix(self.position, self.yaw, self.pitch)
 
-        for gameobject in self.scene.gameobjects:
-            vertices, indices, colors = gameobject.mesh.get_data()
-            mvp_matrix = self.projection_matrix @ view_matrix @ gameobject.transform.get_matrix()
+        for node in self.scene.flatten():
+            if node.mesh is None: continue
+            vertices, indices, colors = node.mesh.get_data()
+            mvp_matrix = self.projection_matrix @ view_matrix @ node.transform.get_matrix()
 
             vertices_clip = math.transform_vertices(vertices, mvp_matrix)
             screen_coords, w_coords = math.clip_to_screen(

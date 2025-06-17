@@ -2,7 +2,7 @@ import numpy as np
 import numba as nb
 
 
-@nb.njit
+@nb.njit(cache=True)
 def get_projection_matrix(
     fov: float,
     width: int,
@@ -20,7 +20,7 @@ def get_projection_matrix(
     return proj
 
 
-@nb.njit
+@nb.njit(cache=True)
 def get_camera_vectors(yaw: float, pitch: float) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
     front = np.array([
         np.cos(pitch) * np.sin(yaw),
@@ -37,7 +37,7 @@ def get_camera_vectors(yaw: float, pitch: float) -> tuple[np.ndarray, np.ndarray
     return front, right, up
 
 
-@nb.njit
+@nb.njit(cache=True)
 def get_view_matrix(position: np.ndarray, yaw: float, pitch: float) -> np.ndarray:
     front, right, up = get_camera_vectors(yaw, pitch)
 
@@ -49,7 +49,7 @@ def get_view_matrix(position: np.ndarray, yaw: float, pitch: float) -> np.ndarra
     return view
 
 
-@nb.njit
+@nb.njit(cache=True)
 def transform_vertices(vertices: np.ndarray, mvp_matrix: np.ndarray) -> np.ndarray:
     vertices_hom = np.concatenate(
         (vertices, np.ones((vertices.shape[0], 1), dtype=np.float32)),
@@ -59,7 +59,7 @@ def transform_vertices(vertices: np.ndarray, mvp_matrix: np.ndarray) -> np.ndarr
     return vertices_clip
 
 
-@nb.njit
+@nb.njit(cache=True)
 def clip_to_screen(vertices_clip: np.ndarray, width: int, height: int) -> tuple[np.ndarray, np.ndarray]:
     w_coords = vertices_clip[:, 3:4]
     vertices_ndc = vertices_clip[:, :3] / w_coords
@@ -71,13 +71,14 @@ def clip_to_screen(vertices_clip: np.ndarray, width: int, height: int) -> tuple[
     return screen_coords, w_coords
 
 
+@nb.njit(cache=True)
 def lerp(a: float, b: float, t: float) -> float:
     return a + (b - a) * t
 
 # TODO: color class
 
 
-@nb.njit
+@nb.njit(cache=True)
 def barycentric_weights(px, py, p0, p1, p2):
     v0x = p1[0] - p0[0]
     v0y = p1[1] - p0[1]
@@ -104,7 +105,7 @@ def barycentric_weights(px, py, p0, p1, p2):
     return u, v, w
 
 
-@nb.njit(parallel=True)
+@nb.njit(cache=True, parallel=True)
 def draw_triangle(buffer, zbuffer, p0, p1, p2, c0, c1, c2, w0, w1, w2):
     w0 = 1 / w0
     w1 = 1 / w1
