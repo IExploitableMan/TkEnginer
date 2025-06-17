@@ -1,3 +1,5 @@
+import copy
+
 from .transform import *
 from .mesh import *
 
@@ -5,21 +7,15 @@ from .mesh import *
 class Node:
     def __init__(self, mesh: Mesh = None, transform: Transform = None, children: "Node" = None) -> None:
         self.mesh = mesh
-        if transform is None:
-            self.transform = Transform()
-        else:
-            self.transform = transform
-        if children is None:
-            self.children: list[Node] = list()
-        else:
-            self.children = children
+        self.transform = transform if transform is not None else Transform()
+        self.children = children if children is not None else list()
 
-    def flatten(self, parent_transform: Transform = None) -> list["Node"]:
-        if parent_transform is None:
-            parent_transform = Transform()
+    def update(self, delta: float) -> None:
+        pass
+
+    def traverse(self, parent_transform=Transform()):
         global_transform = parent_transform @ self.transform
-        result = [Node(self.mesh, global_transform, [])]
+        yield self, global_transform
         for child in self.children:
-            result.extend(child.flatten(global_transform))
-        return result
+            yield from child.traverse(global_transform)
 

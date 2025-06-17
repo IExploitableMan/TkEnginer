@@ -8,12 +8,9 @@ class Transform:
         rotation: list[float] = None,
         scale: list[float] = None
     ) -> None:
-        if position is None:
-            position = [0.0, 0.0, 0.0]
-        if rotation is None:
-            rotation = [0.0, 0.0, 0.0]
-        if scale is None:
-            scale = [1.0, 1.0, 1.0]
+        position = position if position is not None else [0.0, 0.0, 0.0]
+        rotation = rotation if rotation is not None else [0.0, 0.0, 0.0]
+        scale = scale if scale is not None else [1.0, 1.0, 1.0]
         self.position = np.array(position, dtype=np.float32)
         self.rotation = np.array(rotation, dtype=np.float32)
         self.scale = np.array(scale, dtype=np.float32)

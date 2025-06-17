@@ -8,37 +8,35 @@ from PIL import ImageDraw
 class Demo(tke.Engine):
     def __init__(self) -> None:
         super().__init__("TkEnginer new demo")
-        self.speed = 0.05
-        self.sensetivity = 0.01
+        self.speed = 3
+        self.sensetivity = 0.2
         self.last_mouse = None
-        self.last_t = time.time()
 
-    def on_update(self) -> None:
+    def update(self, delta: float) -> None:
         draw = ImageDraw.Draw(self.image)
         draw.text(
             (10, 10), 
-            f"FPS: {int(1 / (time.time() - self.last_t))}", 
+            f"FPS: {int(1 / delta)}", 
             "white"
         )
-        self.last_t = time.time()
         front, right, _ = tke.math.get_camera_vectors(self.yaw, self.pitch)
 
         mouse = self.get_mouse_position()
         if self.is_key_pressed("mouse_1"):
-            self.yaw += (mouse[0] - self.last_mouse[0]) * self.sensetivity
-            self.pitch -= (mouse[1] - self.last_mouse[1]) * self.sensetivity
+            self.yaw += (mouse[0] - self.last_mouse[0]) * self.sensetivity * delta
+            self.pitch -= (mouse[1] - self.last_mouse[1]) * self.sensetivity * delta
             max_pitch = np.pi / 2 - 0.01
             self.pitch = max(-max_pitch, min(max_pitch, self.pitch))
         self.last_mouse = mouse
 
         if self.is_key_pressed("w"):
-            self.position += front * self.speed
+            self.position += front * self.speed * delta
         if self.is_key_pressed("a"):
-            self.position -= right * self.speed
+            self.position -= right * self.speed * delta
         if self.is_key_pressed("s"):
-            self.position -= front * self.speed
+            self.position -= front * self.speed * delta
         if self.is_key_pressed("d"):
-            self.position += right * self.speed
+            self.position += right * self.speed * delta
 
 
 demo = Demo()
@@ -70,13 +68,14 @@ demo.scene = tke.Node(children=[
             scale=[1.5, 0.5, 1.0]
         )
     ),
-    tke.Node(
+    tke.RigidbodyNode(
         mesh=tke.PyramidWithSquareBaseMesh(),
         transform=tke.Transform(
             position=[4.0, 3.0, -3.0],
             rotation=[np.pi/3, np.pi/2, np.pi/5],
             scale=[0.8, 1.0, 0.5]
-        )
+        ),
+        mass=0.1
     ),
     tke.Node(
         mesh=tke.PyramidMesh(),

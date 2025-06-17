@@ -1,14 +1,13 @@
 import tkinter as tk
 import numpy as np
 import time
-import abc
 
 from PIL import Image, ImageTk
 from .node import *
 from . import math
 
 
-class Engine(abc.ABC):
+class Engine:
     def __init__(
         self,
         title: str = "TkEnginer",
@@ -37,6 +36,7 @@ class Engine(abc.ABC):
         )
         self.canvas.pack(fill=tk.BOTH, expand=True)
         self.init(width, height)
+        self.last_time = time.time()
 
         self.yaw = np.pi
         self.pitch = .0
@@ -70,8 +70,7 @@ class Engine(abc.ABC):
         self.photo = ImageTk.PhotoImage(self.image)
         self.canvas.create_image(0, 0, image=self.photo, anchor="nw")
 
-    @abc.abstractmethod
-    def on_update(self) -> None:
+    def update(self, delta: float) -> None:
         pass
 
     def is_key_pressed(self, key: str) -> bool:
@@ -81,7 +80,7 @@ class Engine(abc.ABC):
         return self.mouse if self.mouse is not None else [0, 0]
 
     def run(self) -> None:
-        self.update()
+        self.loop()
         self.window.mainloop()
 
     def key_pressed(self, event: tk.Event) -> None:
@@ -102,8 +101,9 @@ class Engine(abc.ABC):
     def window_resized(self, event: tk.Event) -> None:
         self.init(event.width, event.height)
 
-    def update(self) -> None: # TODO: shaders, lighting
-        t = time.time()
+    def loop(self) -> None: # TODO: shaders, lighting
+        now = time.time()
+        delta = now - self.last_time
 
         self.image.paste("black", (0, 0, self.width, self.height))
         self.buffer[:, :, :] = list(self.clear_color) + [255]
@@ -111,10 +111,11 @@ class Engine(abc.ABC):
 
         view_matrix = math.get_view_matrix(self.position, self.yaw, self.pitch)
 
-        for node in self.scene.flatten():
+        for node, global_transform in self.scene.traverse():
+            node.update(delta)
             if node.mesh is None: continue
             vertices, indices, colors = node.mesh.get_data()
-            mvp_matrix = self.projection_matrix @ view_matrix @ node.transform.get_matrix()
+            mvp_matrix = self.projection_matrix @ view_matrix @ global_transform.get_matrix()
 
             vertices_clip = math.transform_vertices(vertices, mvp_matrix)
             screen_coords, w_coords = math.clip_to_screen(
@@ -139,10 +140,11 @@ class Engine(abc.ABC):
                 math.draw_triangle(self.buffer, self.zbuffer, p0, p1, p2, c0, c1, c2, w0, w1, w2)
 
         self.image = Image.fromarray(self.buffer, "RGBA")
-        self.on_update()
+        self.update(delta)
         self.photo.paste(self.image)
 
+        self.last_time = now
         self.window.after(
-            max(1, int(self.frame_time - 1000 * (time.time() - t))),
-            self.update
+            max(1, int(self.frame_time - 1000 * (time.time() - now))),
+            self.loop
         )
