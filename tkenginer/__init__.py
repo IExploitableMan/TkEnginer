@@ -5,4 +5,4 @@ from .node import *
 from .mesh import *
 from . import math
 
-VERSION = "0.0.0"
+VERSION = "0.3.0a1" # 0.3.0-pre in semver...
