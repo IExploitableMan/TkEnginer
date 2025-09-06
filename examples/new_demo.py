@@ -4,7 +4,7 @@ import numpy as np
 from PIL import ImageDraw
 
 
-class Demo(tke.Engine):
+class Demo(tke.Engine): # pragma: no cover
     def __init__(self) -> None:
         super().__init__("TkEnginer new demo")
         self.speed = 3

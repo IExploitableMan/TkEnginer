@@ -73,3 +73,10 @@ class Transform:
 
     def __matmul__(self, other: "Transform") -> np.ndarray:
         return Transform.from_matrix(self.get_matrix() @ other.get_matrix())
+    
+    def __eq__(self, value):
+        if not isinstance(value, Transform):
+            return False
+        return (np.allclose(self.position, value.position) and
+                np.allclose(self.rotation, value.rotation) and
+                np.allclose(self.scale, value.scale))
