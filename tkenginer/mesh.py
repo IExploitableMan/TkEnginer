@@ -190,7 +190,7 @@ class OBJMesh(Mesh):
         vertices = []
         indices = []
 
-        with file:  # TODO: implement MTL parser, textures
+        with file:  # TODO: implement MTL parser?
             for line in file:
                 parts = line.strip().split()
                 if not parts:

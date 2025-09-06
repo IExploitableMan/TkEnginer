@@ -21,6 +21,7 @@ class Color:
             return Color(rgba[0], rgba[1], rgba[2])
         return Color(rgba[0], rgba[1], rgba[2], rgba[3])
 
+
 class Colors:
     BLACK = Color(0, 0, 0)
     WHITE = Color(255, 255, 255)

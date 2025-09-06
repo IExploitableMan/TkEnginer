@@ -7,5 +7,6 @@ from .node import *
 from .mesh import *
 from . import math
 
-VERSION = "0.3.0a1"  # 0.3.0-pre in semver...
-# TODO: tests + docstrings
+SEMVER = "0.4.0-pre"
+VERSION = "0.4.0a1"
+# TODO: tests, docstrings

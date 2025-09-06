@@ -64,7 +64,7 @@ class OBB:
         return True
 
 # TODO: switch to ECS
-# class RigidbodyNode(Node): 
+# class RigidbodyNode(Node):
 #     def __init__(
 #         self,
 #         mesh: Mesh = None,

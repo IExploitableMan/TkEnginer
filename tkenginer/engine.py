@@ -103,7 +103,7 @@ class Engine:
     def window_resized(self, event: tk.Event) -> None:
         self.init(event.width, event.height)
 
-    def loop(self) -> None:  # TODO: lighting
+    def loop(self) -> None:
         now = time.time()
         delta = now - self.last_time
 

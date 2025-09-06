@@ -4,7 +4,7 @@ from . import math
 from .color import *
 
 
-class Material: # TODO: add more built-in materials
+class Material:  # TODO: add more built-in materials (lighting, texture)
     def vertex(self, attributes: dict, uniforms: dict) -> tuple[np.ndarray, dict]:
         raise NotImplementedError
 
