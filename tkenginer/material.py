@@ -1,13 +1,14 @@
 import numpy as np
 
 from . import math
+from .color import *
 
 
-class Material:
+class Material: # TODO: add more built-in materials
     def vertex(self, attributes: dict, uniforms: dict) -> tuple[np.ndarray, dict]:
         raise NotImplementedError
 
-    def fragment(self, varyings: dict, uniforms: dict) -> tuple[int, int, int]:
+    def fragment(self, varyings: dict, uniforms: dict) -> Color:
         raise NotImplementedError
 
     def process(self, uniforms: dict, **kwargs) -> None:
@@ -22,11 +23,10 @@ class Material:
         varyings_list = [dict() for _ in range(len(vertices))]
 
         positions_clip = np.empty((len(vertices), 4), dtype=np.float32)
-        colors = kwargs["colors"]
 
         for i, vertex in enumerate(vertices):
             attributes["position"] = vertex
-            attributes["color"] = colors[i]
+            attributes["color"] = None
 
             positions_clip[i], varyings_list[i] = self.vertex(
                 attributes, uniforms)
@@ -49,9 +49,9 @@ class Material:
             if math.is_back_facing(p0, p1, p2):
                 continue
 
-            c0 = self.fragment(varyings_list[triangle[0]], uniforms)
-            c1 = self.fragment(varyings_list[triangle[1]], uniforms)
-            c2 = self.fragment(varyings_list[triangle[2]], uniforms)
+            c0 = self.fragment(varyings_list[triangle[0]], uniforms).to_numpy()
+            c1 = self.fragment(varyings_list[triangle[1]], uniforms).to_numpy()
+            c2 = self.fragment(varyings_list[triangle[2]], uniforms).to_numpy()
 
             math.draw_triangle(
                 uniforms["buffer"],
@@ -63,7 +63,7 @@ class Material:
 
 
 class MeshColorMaterial(Material):
-    def __init__(self, color: tuple[int, int, int, int] = (255, 255, 255, 255)):
+    def __init__(self, color: Color = Colors.WHITE):
         self.color = color
 
     def vertex(self, attributes: dict, uniforms: dict) -> tuple[np.ndarray, dict]:
@@ -77,21 +77,6 @@ class MeshColorMaterial(Material):
         }
         return position_clip, varyings
 
-    def fragment(self, varyings: dict, uniforms: dict) -> tuple[int, int, int]:
+    def fragment(self, varyings: dict, uniforms: dict) -> Color:
         return varyings["color"]
-
-
-class VertexColorMaterial(Material):
-    def vertex(self, attributes: dict, uniforms: dict) -> tuple[np.ndarray, dict]:
-        mvp_matrix = uniforms["mvp_matrix"]
-        position = attributes["position"]
-
-        position_clip = math.transform_vertex(position, mvp_matrix)
-
-        varyings = {
-            "color": attributes["color"]
-        }
-        return position_clip, varyings
-
-    def fragment(self, varyings: dict, uniforms: dict) -> tuple[int, int, int]:
         return varyings["color"]

@@ -63,30 +63,30 @@ class OBB:
 
         return True
 
+# TODO: switch to ECS
+# class RigidbodyNode(Node): 
+#     def __init__(
+#         self,
+#         mesh: Mesh = None,
+#         transform: Transform = None,
+#         children: list = None,
+#         mass: float = 1.0,
+#         use_gravity: bool = True,
+#         obb: OBB = None
+#     ) -> None:
+#         super().__init__(mesh, transform, children)
+#         self.velocity = np.zeros(3, dtype=np.float32)
+#         self.acceleration = np.zeros(3, dtype=np.float32)
+#         self.mass = mass
+#         self.use_gravity = use_gravity
+#         self.obb = obb
 
-class RigidbodyNode(Node):
-    def __init__(
-        self,
-        mesh: Mesh = None,
-        transform: Transform = None,
-        children: list = None,
-        mass: float = 1.0,
-        use_gravity: bool = True,
-        obb: OBB = None
-    ) -> None:
-        super().__init__(mesh, transform, children)
-        self.velocity = np.zeros(3, dtype=np.float32)
-        self.acceleration = np.zeros(3, dtype=np.float32)
-        self.mass = mass
-        self.use_gravity = use_gravity
-        self.obb = obb
+#     def apply_force(self, force: np.ndarray) -> None:
+#         self.acceleration += force / self.mass
 
-    def apply_force(self, force: np.ndarray) -> None:
-        self.acceleration += force / self.mass
-
-    def update(self, delta: float) -> None:
-        if self.use_gravity:
-            self.acceleration += gravity
-        self.velocity += self.acceleration * delta
-        self.transform.position += self.velocity * delta
-        self.acceleration[:] = 0
+#     def update(self, delta: float) -> None:
+#         if self.use_gravity:
+#             self.acceleration += gravity
+#         self.velocity += self.acceleration * delta
+#         self.transform.position += self.velocity * delta
+#         self.acceleration[:] = 0

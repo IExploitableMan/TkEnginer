@@ -5,6 +5,7 @@ import time
 from PIL import Image, ImageTk
 from .node import *
 from . import math
+from .color import *
 
 
 class Engine:
@@ -17,7 +18,7 @@ class Engine:
         fov: float = 90,
         near: float = 0.01,
         far: float = 100,
-        clear_color: tuple[int, int, int] = (0, 0, 0),
+        clear_color: Color = Colors.BLACK,
         scene: Node = None
     ) -> None:
 
@@ -107,7 +108,7 @@ class Engine:
         delta = now - self.last_time
 
         self.image.paste("black", (0, 0, self.width, self.height))
-        self.buffer[:, :, :] = list(self.clear_color) + [255]
+        self.buffer[:, :, :] = self.clear_color.to_tuple()
         self.zbuffer[:, :] = np.inf
 
         view_matrix = math.get_view_matrix(self.position, self.yaw, self.pitch)
@@ -127,13 +128,13 @@ class Engine:
                 "zbuffer": self.zbuffer
             }
 
-            vertices, indices, colors = node.mesh.get_data()
+            vertices, indices = node.mesh.get_data()
 
             node.material.process(
                 uniforms,
                 vertices=vertices,
                 indices=indices,
-                colors=colors
+                colors=None
             )
 
         self.image = Image.fromarray(self.buffer, "RGBA")

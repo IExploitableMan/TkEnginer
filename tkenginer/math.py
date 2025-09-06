@@ -83,8 +83,6 @@ def clip_to_screen(vertices_clip: np.ndarray, width: int, height: int) -> tuple[
 def lerp(a: float, b: float, t: float) -> float:
     return a + (b - a) * t
 
-# TODO: color class
-
 
 @nb.njit(cache=True)
 def barycentric_weights(px, py, p0, p1, p2):

@@ -52,7 +52,6 @@ demo.scene = tke.Node(children=[
     ),
     tke.Node(
         mesh=tke.CubeMesh(),
-        material=tke.MeshColorMaterial(),
         transform=tke.Transform(
             position=[-5.0, 2.0, -3.0],
             rotation=[np.pi/6, np.pi/3, np.pi/4],
@@ -84,13 +83,8 @@ demo.scene = tke.Node(children=[
         )
     ),
     tke.Node(
-        mesh=tke.PlaneMesh(colors=[
-            (255, 0, 0),
-            (0, 255, 0),
-            (0, 0, 255),
-            (255, 255, 0)
-        ]),
-        material=tke.VertexColorMaterial(),
+        mesh=tke.PlaneMesh(),
+        material=tke.MeshColorMaterial(tke.Colors.BLUE),
         transform=tke.Transform(
             position=[0.0, -2.0, -3.0],
             rotation=[0.0, 0.0, 0.0],
