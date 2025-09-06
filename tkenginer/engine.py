@@ -59,13 +59,14 @@ class Engine:
         self.height = height
         self.projection_matrix = math.get_projection_matrix(
             self.fov,
-            self.width, 
-            self.height, 
-            self.near, 
+            self.width,
+            self.height,
+            self.near,
             self.far
         )
         self.buffer = np.zeros((self.height, self.width, 4), dtype=np.uint8)
-        self.zbuffer = np.full((self.height, self.width), np.inf, dtype=np.float32)
+        self.zbuffer = np.full((self.height, self.width),
+                               np.inf, dtype=np.float32)
         self.image = Image.fromarray(self.buffer, "RGBA")
         self.photo = ImageTk.PhotoImage(self.image)
         self.canvas.create_image(0, 0, image=self.photo, anchor="nw")
@@ -101,7 +102,7 @@ class Engine:
     def window_resized(self, event: tk.Event) -> None:
         self.init(event.width, event.height)
 
-    def loop(self) -> None: # TODO: shaders, lighting
+    def loop(self) -> None:  # TODO: lighting
         now = time.time()
         delta = now - self.last_time
 
@@ -113,31 +114,27 @@ class Engine:
 
         for node, global_transform in self.scene.traverse():
             node.update(delta)
-            if node.mesh is None: continue
-            vertices, indices, colors = node.mesh.get_data()
+            if node.mesh is None:
+                continue
+
             mvp_matrix = self.projection_matrix @ view_matrix @ global_transform.get_matrix()
 
-            vertices_clip = math.transform_vertices(vertices, mvp_matrix)
-            screen_coords, w_coords = math.clip_to_screen(
-                vertices_clip,
-                self.width,
-                self.height
+            uniforms = {
+                "mvp_matrix": mvp_matrix,
+                "width": self.width,
+                "height": self.height,
+                "buffer": self.buffer,
+                "zbuffer": self.zbuffer
+            }
+
+            vertices, indices, colors = node.mesh.get_data()
+
+            node.material.process(
+                uniforms,
+                vertices=vertices,
+                indices=indices,
+                colors=colors
             )
-
-            for triangle in indices:
-                w0, w1, w2 = w_coords[triangle[0], 0], w_coords[triangle[1], 0], w_coords[triangle[2], 0]
-                if w0 <= 0 or w1 <= 0 or w2 <= 0:
-                    continue
-
-                p0, p1, p2 = screen_coords[triangle[0]], screen_coords[triangle[1]], screen_coords[triangle[2]]
-                c0, c1, c2 = colors[triangle[0]], colors[triangle[1]], colors[triangle[2]]
-
-                edge1 = p1 - p0
-                edge2 = p2 - p0
-                if float(edge1[0]) * float(edge2[1]) - float(edge1[1]) * float(edge2[0]) >= 0:
-                    continue
-                
-                math.draw_triangle(self.buffer, self.zbuffer, p0, p1, p2, c0, c1, c2, w0, w1, w2)
 
         self.image = Image.fromarray(self.buffer, "RGBA")
         self.update(delta)

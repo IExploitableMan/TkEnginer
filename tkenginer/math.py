@@ -50,6 +50,14 @@ def get_view_matrix(position: np.ndarray, yaw: float, pitch: float) -> np.ndarra
 
 
 @nb.njit(cache=True)
+def transform_vertex(vertex: np.ndarray, mvp_matrix: np.ndarray) -> np.ndarray:
+    vertex_hom = np.array(
+        [vertex[0], vertex[1], vertex[2], 1.0], dtype=np.float32)
+    vertex_clip = vertex_hom @ mvp_matrix.T
+    return vertex_clip
+
+
+@nb.njit(cache=True)
 def transform_vertices(vertices: np.ndarray, mvp_matrix: np.ndarray) -> np.ndarray:
     vertices_hom = np.concatenate(
         (vertices, np.ones((vertices.shape[0], 1), dtype=np.float32)),
@@ -105,11 +113,15 @@ def barycentric_weights(px, py, p0, p1, p2):
     return u, v, w
 
 
+@nb.njit(cache=True)
+def is_back_facing(p0, p1, p2) -> bool:
+    edge1 = p1 - p0
+    edge2 = p2 - p0
+    return float(edge1[0]) * float(edge2[1]) - float(edge1[1]) * float(edge2[0]) >= 0
+
+
 @nb.njit(cache=True, parallel=True)
 def draw_triangle(buffer, zbuffer, p0, p1, p2, c0, c1, c2, w0, w1, w2):
-    w0 = 1 / w0
-    w1 = 1 / w1
-    w2 = 1 / w2
     height, width, channels = buffer.shape
     min_x = max(int(min(p0[0], p1[0], p2[0])), 0)
     max_x = min(int(max(p0[0], p1[0], p2[0])), width - 1)
@@ -120,11 +132,24 @@ def draw_triangle(buffer, zbuffer, p0, p1, p2, c0, c1, c2, w0, w1, w2):
         for x in range(min_x, max_x + 1):
             u, v, w = barycentric_weights(x + 0.5, y + 0.5, p0, p1, p2)
             if u >= 0 and v >= 0 and w >= 0:
-                z = u / w0 + v / w1 + w / w2
-                if z < zbuffer[y, x]:
-                    zbuffer[y, x] = z
+
+                inv_w0 = 1.0 / w0
+                inv_w1 = 1.0 / w1
+                inv_w2 = 1.0 / w2
+
+                inv_w_interp = u * inv_w0 + v * inv_w1 + w * inv_w2
+
+                if inv_w_interp == 0:
+                    continue
+
+                w_interp = 1.0 / inv_w_interp
+
+                if w_interp < zbuffer[y, x]:
+                    zbuffer[y, x] = w_interp
+
                     for ch in range(channels):
-                        val = u * c0[ch] + v * c1[ch] + w * c2[ch]
+                        val = (u * c0[ch] * inv_w0 + v * c1[ch] *
+                               inv_w1 + w * c2[ch] * inv_w2) * w_interp
                         if val < 0:
                             val = 0
                         elif val > 255:

@@ -1,6 +1,5 @@
 import tkenginer as tke
 import numpy as np
-import time
 
 from PIL import ImageDraw
 
@@ -15,16 +14,18 @@ class Demo(tke.Engine):
     def update(self, delta: float) -> None:
         draw = ImageDraw.Draw(self.image)
         draw.text(
-            (10, 10), 
-            f"FPS: {int(1 / delta)}", 
+            (10, 10),
+            f"FPS: {int(1 / delta)}",
             "white"
         )
         front, right, _ = tke.math.get_camera_vectors(self.yaw, self.pitch)
 
         mouse = self.get_mouse_position()
         if self.is_key_pressed("mouse_1"):
-            self.yaw += (mouse[0] - self.last_mouse[0]) * self.sensetivity * delta
-            self.pitch -= (mouse[1] - self.last_mouse[1]) * self.sensetivity * delta
+            self.yaw += (mouse[0] - self.last_mouse[0]) * \
+                self.sensetivity * delta
+            self.pitch -= (mouse[1] - self.last_mouse[1]
+                           ) * self.sensetivity * delta
             max_pitch = np.pi / 2 - 0.01
             self.pitch = max(-max_pitch, min(max_pitch, self.pitch))
         self.last_mouse = mouse
@@ -50,32 +51,21 @@ demo.scene = tke.Node(children=[
         )
     ),
     tke.Node(
-        mesh=tke.CubeMesh(
-            colors=[
-                [255, 0, 0, 255],
-                [0, 255, 0, 255],
-                [0, 0, 255, 255],
-                [255, 255, 0, 255],
-                [255, 0, 255, 255],
-                [0, 255, 255, 255],
-                [255, 165, 0, 255],
-                [128, 0, 128, 255],
-            ]
-        ),
+        mesh=tke.CubeMesh(),
+        material=tke.MeshColorMaterial(),
         transform=tke.Transform(
             position=[-5.0, 2.0, -3.0],
             rotation=[np.pi/6, np.pi/3, np.pi/4],
             scale=[1.5, 0.5, 1.0]
         )
     ),
-    tke.RigidbodyNode(
+    tke.Node(
         mesh=tke.PyramidWithSquareBaseMesh(),
         transform=tke.Transform(
             position=[4.0, 3.0, -3.0],
             rotation=[np.pi/3, np.pi/2, np.pi/5],
             scale=[0.8, 1.0, 0.5]
-        ),
-        mass=0.1
+        )
     ),
     tke.Node(
         mesh=tke.PyramidMesh(),
@@ -94,7 +84,13 @@ demo.scene = tke.Node(children=[
         )
     ),
     tke.Node(
-        mesh=tke.PlaneMesh(),
+        mesh=tke.PlaneMesh(colors=[
+            (255, 0, 0),
+            (0, 255, 0),
+            (0, 0, 255),
+            (255, 255, 0)
+        ]),
+        material=tke.VertexColorMaterial(),
         transform=tke.Transform(
             position=[0.0, -2.0, -3.0],
             rotation=[0.0, 0.0, 0.0],

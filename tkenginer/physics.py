@@ -9,11 +9,11 @@ gravity = np.array([0, -9.81, 0], dtype=np.float32)
 
 class OBB:
     def __init__(
-            self, 
-            center: np.ndarray = None, 
-            axes: np.ndarray = None, 
-            extents: np.ndarray = None
-        ) -> None:
+        self,
+        center: np.ndarray = None,
+        axes: np.ndarray = None,
+        extents: np.ndarray = None
+    ) -> None:
         self.center = center if center is not None else np.zeros(
             3, dtype=np.float32)
         self.axes = axes if axes is not None else np.eye(
@@ -25,7 +25,7 @@ class OBB:
         self.center = center
         self.axes = axes
         self.extents = extents
-    
+
     def collides_with(self, other: 'OBB') -> bool:
         R = self.axes.T @ other.axes
         T = self.axes.T @ (other.center - self.center)
