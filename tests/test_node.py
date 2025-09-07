@@ -1,9 +1,16 @@
+"""
+Tests for the node module.
+"""
+
 from tkenginer.node import *
 from tkenginer.transform import *
 from tkenginer.mesh import *
 from tkenginer.material import *
 
 def test_node_init_defaults():
+    """
+    Tests the default initialization of a Node.
+    """
     node = Node()
     assert node.mesh is None
     assert isinstance(node.material, MeshColorMaterial)
@@ -11,6 +18,9 @@ def test_node_init_defaults():
     assert node.children == []
 
 def test_node_init_with_values():
+    """
+    Tests the initialization of a Node with specified values.
+    """
     mesh = Mesh([], [])
     material = Material()
     transform = Transform()
@@ -22,11 +32,17 @@ def test_node_init_with_values():
     assert node.children is children
 
 def test_node_update():
+    """
+    Tests the update method of a Node.
+    """
     node = Node()
     node.update(0.1)
 
 def test_node_traverse_single():
-    transform = Transform(position=(1, 0, 0))
+    """
+    Tests traversing a single node.
+    """
+    transform = Transform(position=[1, 0, 0])
     node = Node(transform=transform)
     
     nodes = list(node.traverse())
@@ -36,10 +52,13 @@ def test_node_traverse_single():
     assert nodes[0][1] == transform
 
 def test_node_traverse_with_children():
-    child_transform = Transform(position=(0, 1, 0))
+    """
+    Tests traversing a node with children.
+    """
+    child_transform = Transform(position=[0, 1, 0])
     child = Node(transform=child_transform)
     
-    parent_transform = Transform(position=(1, 0, 0))
+    parent_transform = Transform(position=[1, 0, 0])
     parent = Node(transform=parent_transform, children=[child])
     
     nodes = list(parent.traverse())

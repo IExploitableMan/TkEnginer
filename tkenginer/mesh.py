@@ -1,22 +1,50 @@
+"""
+This module provides classes for creating and manipulating 3D meshes.
+"""
+
 import numpy as np
 import io
 
 
 class Mesh:
+    """
+    A base class for 3D meshes.
+    """
+
     def __init__(
         self,
         vertices: list[list[float]],
         indices: list[list[int]],
     ) -> None:
+        """
+        Initializes the mesh.
+
+        Args:
+            vertices: A list of vertices, where each vertex is a list of 3 floats (x, y, z).
+            indices: A list of indices that define the faces of the mesh.
+        """
         self.vertices = np.array(vertices, dtype=np.float32)
         self.indices = np.array(indices, dtype=np.uint32)
 
     def get_data(self) -> tuple[np.ndarray, np.ndarray]:
+        """
+        Returns the vertex and index data for the mesh.
+
+        Returns:
+            A tuple containing the vertices and indices as NumPy arrays.
+        """
         return self.vertices, self.indices
 
 
 class CubeMesh(Mesh):
+    """
+    A mesh representing a cube.
+    """
+
     def __init__(self) -> None:
+        """
+        Initializes the cube mesh.
+        """
         vertices = [
             [-0.5, -0.5, -0.5],
             [0.5, -0.5, -0.5],
@@ -39,7 +67,14 @@ class CubeMesh(Mesh):
 
 
 class PyramidMesh(Mesh):
+    """
+    A mesh representing a pyramid with a triangular base.
+    """
+
     def __init__(self) -> None:
+        """
+        Initializes the pyramid mesh.
+        """
         vertices = [
             [-0.5, -0.5, -0.5],
             [0.5, -0.5, -0.5],
@@ -56,7 +91,14 @@ class PyramidMesh(Mesh):
 
 
 class PyramidWithSquareBaseMesh(Mesh):
+    """
+    A mesh representing a pyramid with a square base.
+    """
+
     def __init__(self) -> None:
+        """
+        Initializes the pyramid mesh with a square base.
+        """
         vertices = [
             [-0.5, -0.5, -0.5],
             [0.5, -0.5, -0.5],
@@ -76,7 +118,17 @@ class PyramidWithSquareBaseMesh(Mesh):
 
 
 class SphereMesh(Mesh):
+    """
+    A mesh representing a sphere.
+    """
+
     def __init__(self, segments: int) -> None:
+        """
+        Initializes the sphere mesh.
+
+        Args:
+            segments: The number of segments to use for the sphere.
+        """
         vertices = []
         indices = []
 
@@ -102,7 +154,17 @@ class SphereMesh(Mesh):
 
 
 class ConeMesh(Mesh):
+    """
+    A mesh representing a cone.
+    """
+
     def __init__(self, segments: int) -> None:
+        """
+        Initializes the cone mesh.
+
+        Args:
+            segments: The number of segments to use for the cone base.
+        """
         top_vertex = [0.0, 0.5, 0.0]
         base_vertices = []
 
@@ -129,7 +191,17 @@ class ConeMesh(Mesh):
 
 
 class CylinderMesh(Mesh):
+    """
+    A mesh representing a cylinder.
+    """
+
     def __init__(self, segments: int) -> None:
+        """
+        Initializes the cylinder mesh.
+
+        Args:
+            segments: The number of segments to use for the cylinder caps.
+        """
         top_center = [0.0, 0.5, 0.0]
         bottom_center = [0.0, -0.5, 0.0]
         top_vertices = []
@@ -171,7 +243,14 @@ class CylinderMesh(Mesh):
 
 
 class PlaneMesh(Mesh):
+    """
+    A mesh representing a plane.
+    """
+
     def __init__(self) -> None:
+        """
+        Initializes the plane mesh.
+        """
         vertices = [
             [-0.5, 0.0, -0.5],
             [0.5, 0.0, -0.5],
@@ -186,7 +265,17 @@ class PlaneMesh(Mesh):
 
 
 class OBJMesh(Mesh):
+    """
+    A mesh loaded from an OBJ file.
+    """
+
     def __init__(self, file: io.TextIOWrapper) -> None:
+        """
+        Initializes the mesh from an OBJ file.
+
+        Args:
+            file: A file-like object containing the OBJ data.
+        """
         vertices = []
         indices = []
 

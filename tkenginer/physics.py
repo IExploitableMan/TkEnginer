@@ -1,3 +1,7 @@
+"""
+This module provides physics-related classes and functions.
+"""
+
 import numpy as np
 
 from .node import Node
@@ -5,6 +9,9 @@ from .transform import Transform
 from .mesh import Mesh
 
 gravity = np.array([0, -9.81, 0], dtype=np.float32)
+"""
+The gravity vector.
+"""
 
 
 # class OBB:

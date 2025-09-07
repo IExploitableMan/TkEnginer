@@ -1,13 +1,23 @@
+"""
+Tests for the transform module.
+"""
+
 import numpy as np
 import pytest
 from tkenginer.transform import Transform
 
 
 def assert_matrix_equal(a, b):
+    """
+    Asserts that two matrices are equal.
+    """
     assert np.allclose(a, b, atol=1e-6)
 
 
 def test_default_get_matrix():
+    """
+    Tests that the default transform is an identity matrix.
+    """
     t = Transform()
     m = t.get_matrix()
     assert isinstance(m, np.ndarray)
@@ -17,18 +27,27 @@ def test_default_get_matrix():
 
 
 def test_translation():
+    """
+    Tests the translation component of the transform.
+    """
     t = Transform(position=[1, 2, 3])
     m = t.get_matrix()
     assert np.allclose(m[:3, 3], [1, 2, 3], atol=1e-6)
 
 
 def test_scaling():
+    """
+    Tests the scaling component of the transform.
+    """
     t = Transform(scale=[2, 3, 4])
     m = t.get_matrix()
     assert np.allclose(np.diag(m)[:3], [2, 3, 4], atol=1e-6)
 
 
 def test_rotation_z_90():
+    """
+    Tests a 90-degree rotation around the Z-axis.
+    """
     angle = np.pi / 2
     t = Transform(rotation=[0, 0, angle])
     m = t.get_matrix()
@@ -42,6 +61,9 @@ def test_rotation_z_90():
 
 
 def test_from_matrix_roundtrip():
+    """
+    Tests that converting a transform to a matrix and back results in the original transform.
+    """
     pos = [1.1, -2.2, 3.3]
     rot = [0.1, 0.2, -0.3]
     scale = [2.0, 3.0, 4.0]
@@ -54,6 +76,9 @@ def test_from_matrix_roundtrip():
 
 
 def test_matmul_combines_transforms():
+    """
+    Tests that matrix multiplication combines transforms correctly.
+    """
     t1 = Transform(position=[1, 0, 0])
     t2 = Transform(position=[0, 1, 0])
     t3 = t1 @ t2
@@ -63,6 +88,9 @@ def test_matmul_combines_transforms():
 
 
 def test_non_commutative():
+    """
+    Tests that transform multiplication is not commutative.
+    """
     t1 = Transform(rotation=[0, 0, np.pi/4])
     t2 = Transform(rotation=[0, np.pi/6, 0])
     m12 = (t1 @ t2).get_matrix()
@@ -71,6 +99,9 @@ def test_non_commutative():
 
 
 def test_invalid_init_lengths():
+    """
+    Tests that initializing a Transform with invalid vector lengths raises an exception.
+    """
     with pytest.raises(Exception):
         Transform(position=[1, 2]).get_matrix()
     with pytest.raises(Exception):
@@ -80,6 +111,9 @@ def test_invalid_init_lengths():
 
 
 def test_gimbal_lock_cases():
+    """
+    Tests the from_matrix conversion for rotations that can cause gimbal lock.
+    """
     y1 = -np.pi/2
     t1 = Transform(rotation=[0.0, y1, 0.0])
     m1 = t1.get_matrix()

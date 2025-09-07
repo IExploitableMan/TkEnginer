@@ -1,3 +1,7 @@
+"""
+This module provides the Material classes for rendering.
+"""
+
 import numpy as np
 
 from . import math
@@ -5,13 +9,46 @@ from .color import *
 
 
 class Material:  # TODO: add more built-in materials (lighting, texture)
+    """
+    Base class for materials.
+
+    Materials define how a mesh is rendered.
+    """
+
     def vertex(self, attributes: dict, uniforms: dict) -> tuple[np.ndarray, dict]:
+        """
+        Processes a single vertex.
+
+        Args:
+            attributes: The attributes of the vertex.
+            uniforms: The uniforms for the shader.
+
+        Returns:
+            A tuple containing the clip-space position of the vertex and a dictionary of varyings.
+        """
         raise NotImplementedError
 
     def fragment(self, varyings: dict, uniforms: dict) -> Color:
+        """
+        Processes a single fragment.
+
+        Args:
+            varyings: The interpolated varyings for the fragment.
+            uniforms: The uniforms for the shader.
+
+        Returns:
+            The color of the fragment.
+        """
         raise NotImplementedError
 
     def process(self, uniforms: dict, **kwargs) -> None:
+        """
+        Processes a mesh and renders it to the screen.
+
+        Args:
+            uniforms: The uniforms for the shader.
+            **kwargs: Additional data for the mesh (vertices, indices).
+        """
         vertices = kwargs["vertices"]
         indices = kwargs["indices"]
 
@@ -63,10 +100,30 @@ class Material:  # TODO: add more built-in materials (lighting, texture)
 
 
 class MeshColorMaterial(Material):
+    """
+    A simple material that renders a mesh with a solid color.
+    """
+
     def __init__(self, color: Color = Colors.WHITE):
+        """
+        Initializes the MeshColorMaterial.
+
+        Args:
+            color: The color of the mesh.
+        """
         self.color = color
 
     def vertex(self, attributes: dict, uniforms: dict) -> tuple[np.ndarray, dict]:
+        """
+        Processes a single vertex.
+
+        Args:
+            attributes: The attributes of the vertex.
+            uniforms: The uniforms for the shader.
+
+        Returns:
+            A tuple containing the clip-space position of the vertex and a dictionary of varyings.
+        """
         mvp_matrix = uniforms["mvp_matrix"]
         position = attributes["position"]
 
@@ -78,5 +135,14 @@ class MeshColorMaterial(Material):
         return position_clip, varyings
 
     def fragment(self, varyings: dict, uniforms: dict) -> Color:
-        return varyings["color"]
+        """
+        Processes a single fragment.
+
+        Args:
+            varyings: The interpolated varyings for the fragment.
+            uniforms: The uniforms for the shader.
+
+        Returns:
+            The color of the fragment.
+        """
         return varyings["color"]

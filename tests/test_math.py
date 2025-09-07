@@ -1,8 +1,15 @@
+"""
+Tests for the math module.
+"""
+
 import numpy as np
 import tkenginer.math as math
 
 
 def test_projection_matrix():
+    """
+    Tests the creation of a projection matrix.
+    """
     fov, width, height, near, far = 90.0, 800, 600, 0.1, 100.0
     proj = math.get_projection_matrix(fov, width, height, near, far)
     assert proj.shape == (4, 4)
@@ -10,6 +17,9 @@ def test_projection_matrix():
 
 
 def test_camera_vectors():
+    """
+    Tests the calculation of camera vectors.
+    """
     yaw = np.radians(90.0)
     pitch = 0.0
     front, right, up = math.get_camera_vectors(yaw, pitch)
@@ -20,6 +30,9 @@ def test_camera_vectors():
 
 
 def test_view_matrix():
+    """
+    Tests the creation of a view matrix.
+    """
     pos = np.array([0.0, 0.0, 3.0], dtype=np.float32)
     yaw, pitch = 0.0, 0.0
     view = math.get_view_matrix(pos, yaw, pitch)
@@ -28,6 +41,9 @@ def test_view_matrix():
 
 
 def test_transform_vertices():
+    """
+    Tests the transformation of vertices.
+    """
     vertices = np.array([[1, 2, 3]], dtype=np.float32)
     mvp = np.eye(4, dtype=np.float32)
     out = math.transform_vertices(vertices, mvp)
@@ -36,6 +52,9 @@ def test_transform_vertices():
 
 
 def test_clip_to_screen():
+    """
+    Tests the conversion of clip coordinates to screen coordinates.
+    """
     clip_coords = np.array([[0, 0, 0, 1]], dtype=np.float32)
     width, height = 100, 100
     screen, w = math.clip_to_screen(clip_coords, width, height)

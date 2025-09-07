@@ -1,3 +1,7 @@
+"""
+This module contains the core Engine class for the TkEnginer.
+"""
+
 import tkinter as tk
 import numpy as np
 import time
@@ -9,6 +13,10 @@ from .color import *
 
 
 class Engine:
+    """
+    The main engine class that manages the window, rendering, and user input.
+    """
+
     def __init__(
         self,
         title: str = "TkEnginer",
@@ -21,6 +29,20 @@ class Engine:
         clear_color: Color = Colors.BLACK,
         scene: Node = None
     ) -> None:
+        """
+        Initializes the Engine.
+
+        Args:
+            title: The title of the window.
+            width: The width of the window.
+            height: The height of the window.
+            fps: The target frames per second.
+            fov: The field of view of the camera.
+            near: The near clipping plane.
+            far: The far clipping plane.
+            clear_color: The color to clear the screen with.
+            scene: The root node of the scene graph.
+        """
 
         self.window = tk.Tk()
         self.window.title(title)
@@ -56,6 +78,13 @@ class Engine:
         self.window.bind("<Configure>", self.window_resized)
 
     def init(self, width: int, height: int) -> None:
+        """
+        Initializes the rendering buffers and projection matrix.
+
+        Args:
+            width: The width of the window.
+            height: The height of the window.
+        """
         self.width = width
         self.height = height
         self.projection_matrix = math.get_projection_matrix(
@@ -73,37 +102,100 @@ class Engine:
         self.canvas.create_image(0, 0, image=self.photo, anchor="nw")
 
     def update(self, delta: float) -> None:
+        """
+        Called every frame.
+
+        Args:
+            delta: The time since the last frame.
+        """
         pass
 
     def is_key_pressed(self, key: str) -> bool:
+        """
+        Checks if a key is currently pressed.
+
+        Args:
+            key: The key to check.
+
+        Returns:
+            True if the key is pressed, False otherwise.
+        """
         return key in self.pressed_keys
 
     def get_mouse_position(self) -> list[int]:
+        """
+        Gets the current mouse position.
+
+        Returns:
+            A list containing the x and y coordinates of the mouse.
+        """
         return self.mouse if self.mouse is not None else [0, 0]
 
     def run(self) -> None:
+        """
+        Starts the engine's main loop.
+        """
         self.loop()
         self.window.mainloop()
 
     def key_pressed(self, event: tk.Event) -> None:
+        """
+        Callback for when a key is pressed.
+
+        Args:
+            event: The tkinter event.
+        """
         self.pressed_keys.add(event.keysym)
 
     def key_released(self, event: tk.Event) -> None:
+        """
+        Callback for when a key is released.
+
+        Args:
+            event: The tkinter event.
+        """
         self.pressed_keys.discard(event.keysym)
 
     def button_pressed(self, event: tk.Event) -> None:
+        """
+        Callback for when a mouse button is pressed.
+
+        Args:
+            event: The tkinter event.
+        """
         self.pressed_keys.add(f"mouse_{event.num}")
 
     def button_released(self, event: tk.Event) -> None:
+        """
+        Callback for when a mouse button is released.
+
+        Args:
+            event: The tkinter event.
+        """
         self.pressed_keys.discard(f"mouse_{event.num}")
 
     def mouse_moved(self, event: tk.Event) -> None:
+        """
+        Callback for when the mouse is moved.
+
+        Args:
+            event: The tkinter event.
+        """
         self.mouse = [event.x, event.y]
 
     def window_resized(self, event: tk.Event) -> None:
+        """
+        Callback for when the window is resized.
+
+        Args:
+            event: The tkinter event.
+        """
         self.init(event.width, event.height)
 
     def loop(self) -> None:
+        """
+        The main rendering loop.
+        """
         now = time.time()
         delta = now - self.last_time
 
